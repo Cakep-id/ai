@@ -194,14 +194,6 @@ class UserDashboard {
                     <div class="value">${analysis.detected_asset || 'Equipment'}</div>
                 </div>
                 <div class="ai-metric">
-                    <h4>Lokasi</h4>
-                    <div class="value">${analysis.asset_location || 'Lokasi terdeteksi AI'}</div>
-                </div>
-                <div class="ai-metric">
-                    <h4>Jenis Kerusakan</h4>
-                    <div class="value">${analysis.detected_damage || 'Tidak terdeteksi'}</div>
-                </div>
-                <div class="ai-metric">
                     <h4>Tingkat Risiko</h4>
                     <div class="value ${riskClass}">${analysis.risk_level}</div>
                 </div>
@@ -215,7 +207,7 @@ class UserDashboard {
                 <div class="procedures">
                     <h4><i class="fas fa-tools"></i> Prosedur Perbaikan yang Disarankan:</h4>
                     <ol>
-                        ${analysis.procedures.map(step => `<li>${step}</li>`).join('')}
+                        ${analysis.procedures.map(step => `<li>${step.description || step}</li>`).join('')}
                     </ol>
                 </div>
             ` : ''}
@@ -332,29 +324,25 @@ class UserDashboard {
                 <div class="detail-section">
                     <h4>Informasi Aset</h4>
                     <p><strong>Nama:</strong> ${report.asset_name}</p>
-                    <p><strong>Lokasi:</strong> ${report.asset_location}</p>
-                    <p><strong>Kritikalitas:</strong> ${report.criticality}</p>
                 </div>
                 
                 <div class="detail-section">
                     <h4>Detail Laporan</h4>
                     <p><strong>Tanggal:</strong> ${new Date(report.reported_at).toLocaleString('id-ID')}</p>
                     <p><strong>Deskripsi:</strong> ${report.description}</p>
-                    ${report.location_details ? `<p><strong>Detail Lokasi:</strong> ${report.location_details}</p>` : ''}
                 </div>
                 
                 ${report.ai_detected_damage ? `
                     <div class="detail-section">
                         <h4>Hasil Analisis AI</h4>
-                        <p><strong>Jenis Kerusakan:</strong> ${report.ai_detected_damage}</p>
                         <p><strong>Tingkat Risiko:</strong> <span class="risk-${report.ai_risk_level?.toLowerCase()}">${report.ai_risk_level}</span></p>
                         <p><strong>Kepercayaan:</strong> ${(report.ai_confidence * 100).toFixed(0)}%</p>
                         
-                        ${report.ai_procedures ? `
+                        ${report.ai_procedures && report.ai_procedures.length > 0 ? `
                             <div class="procedures">
                                 <h5>Prosedur Perbaikan:</h5>
                                 <ol>
-                                    ${report.ai_procedures.map(step => `<li>${step}</li>`).join('')}
+                                    ${report.ai_procedures.map(step => `<li>${step.description || step}</li>`).join('')}
                                 </ol>
                             </div>
                         ` : ''}

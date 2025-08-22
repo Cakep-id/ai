@@ -111,3 +111,57 @@
 2025-08-22 23:17:45 | WARNING | risk_engine | Groq procedure generation failed, using fallback template
 2025-08-22 23:17:45 | INFO | risk_engine | Risk aggregation completed: MEDIUM risk (score: 0.744)
 2025-08-22 23:17:46 | INFO | user_endpoints | Report 5 processed successfully with MEDIUM risk
+2025-08-22 23:24:19 | INFO | main | 🛑 Shutting down CAKEP.id EWS AI Module...
+2025-08-22 23:24:19 | INFO | main | ℹ️ Database service cleanup not required
+2025-08-22 23:24:19 | INFO | main | 👋 CAKEP.id EWS AI Module shutdown completed!
+2025-08-22 23:24:46 | INFO | main | ✅ Database connection established
+2025-08-22 23:24:46 | INFO | main | 🔧 Testing services...
+2025-08-22 23:24:46 | WARNING | main | ⚠️ YOLO service issues
+2025-08-22 23:24:46 | INFO | main | ✅ Groq AI service ready
+2025-08-22 23:24:46 | INFO | risk_engine | Starting risk aggregation for report 1
+2025-08-22 23:24:47 | INFO | groq_service | Groq client initialized successfully
+2025-08-22 23:24:47 | WARNING | risk_engine | Groq procedure generation failed, using fallback template
+2025-08-22 23:24:47 | INFO | risk_engine | Risk aggregation completed: LOW risk (score: 0.444)
+2025-08-22 23:24:47 | INFO | main | ✅ Risk Engine ready
+2025-08-22 23:24:47 | INFO | main | 🎯 CAKEP.id EWS AI Module startup completed!
+2025-08-22 23:25:09 | INFO | main | 🛑 Shutting down CAKEP.id EWS AI Module...
+2025-08-22 23:25:09 | INFO | main | ℹ️ Database service cleanup not required
+2025-08-22 23:25:09 | INFO | main | 👋 CAKEP.id EWS AI Module shutdown completed!
+2025-08-22 23:25:27 | INFO | main | ✅ Database connection established
+2025-08-22 23:25:27 | INFO | main | 🔧 Testing services...
+2025-08-22 23:25:27 | WARNING | main | ⚠️ YOLO service issues
+2025-08-22 23:25:28 | INFO | main | ✅ Groq AI service ready
+2025-08-22 23:25:28 | INFO | risk_engine | Starting risk aggregation for report 1
+2025-08-22 23:25:28 | INFO | groq_service | Groq client initialized successfully
+2025-08-22 23:25:28 | WARNING | risk_engine | Groq procedure generation failed, using fallback template
+2025-08-22 23:25:28 | INFO | risk_engine | Risk aggregation completed: LOW risk (score: 0.444)
+2025-08-22 23:25:28 | INFO | main | ✅ Risk Engine ready
+2025-08-22 23:25:28 | INFO | main | 🎯 CAKEP.id EWS AI Module startup completed!
+2025-08-22 23:26:46 | INFO | main | 🛑 Shutting down CAKEP.id EWS AI Module...
+2025-08-22 23:26:46 | INFO | main | ℹ️ Database service cleanup not required
+2025-08-22 23:26:46 | INFO | main | 👋 CAKEP.id EWS AI Module shutdown completed!
+2025-08-22 23:27:07 | INFO | main | ✅ Database connection established
+2025-08-22 23:27:07 | INFO | main | 🔧 Testing services...
+2025-08-22 23:27:07 | WARNING | main | ⚠️ YOLO service issues
+2025-08-22 23:27:07 | INFO | main | ✅ Groq AI service ready
+2025-08-22 23:27:07 | INFO | risk_engine | Starting risk aggregation for report 1
+2025-08-22 23:27:08 | INFO | groq_service | Groq client initialized successfully
+2025-08-22 23:27:08 | WARNING | risk_engine | Groq procedure generation failed, using fallback template
+2025-08-22 23:27:08 | INFO | risk_engine | Risk aggregation completed: LOW risk (score: 0.444)
+2025-08-22 23:27:08 | INFO | main | ✅ Risk Engine ready
+2025-08-22 23:27:08 | INFO | main | 🎯 CAKEP.id EWS AI Module startup completed!
+2025-08-22 23:27:16 | INFO | user_endpoints | Starting AI analysis for image 48a542fa-4c0d-408c-8efc-06287bd61419.JPG
+2025-08-22 23:27:16 | WARNING | yolo_service | YOLO model not available, returning mock detection
+2025-08-22 23:27:17 | INFO | groq_service | NLP analysis completed: category=corrosion, confidence=0.90
+2025-08-22 23:27:17 | INFO | user_endpoints | Starting AI analysis for report 6
+2025-08-22 23:27:17 | WARNING | yolo_service | YOLO model not available, returning mock detection
+2025-08-22 23:27:18 | INFO | groq_service | NLP analysis completed: category=corrosion, confidence=0.90
+2025-08-22 23:27:18 | INFO | risk_engine | Starting risk aggregation for report 6
+2025-08-22 23:27:18 | INFO | groq_service | Groq client initialized successfully
+2025-08-22 23:27:18 | WARNING | risk_engine | Groq procedure generation failed, using fallback template
+2025-08-22 23:27:18 | INFO | risk_engine | Risk aggregation completed: MEDIUM risk (score: 0.708)
+2025-08-22 23:27:19 | INFO | user_endpoints | Report 6 processed successfully with MEDIUM risk
+2025-08-22 23:29:06 | INFO | scheduler | Updated maintenance priority to HIGH for asset 1
+2025-08-22 23:29:06 | INFO | admin_validation_endpoints | Report 6 approved and added to training data
+2025-08-22 23:29:26 | INFO | scheduler | Updated maintenance priority to LOW for asset 1
+2025-08-22 23:29:26 | INFO | admin_validation_endpoints | Report 5 approved and added to training data

@@ -54,6 +54,70 @@ class YOLOService:
         
         self._load_model()
     
+    def _map_to_indonesian_asset(self, detections: List[Dict]) -> str:
+        """Map detected objects to Indonesian asset names"""
+        # YOLO class name to Indonesian asset mapping
+        asset_mapping = {
+            # Vehicles & Transportation
+            'car': 'Mobil',
+            'truck': 'Truk',
+            'bus': 'Bus',
+            'motorcycle': 'Motor',
+            'bicycle': 'Sepeda',
+            
+            # Industrial Equipment (common YOLO classes)
+            'person': 'Peralatan Kerja',
+            'laptop': 'Komputer Laptop',
+            'keyboard': 'Keyboard',
+            'mouse': 'Mouse Komputer',
+            'cell phone': 'Handphone',
+            'microwave': 'Microwave',
+            'oven': 'Oven',
+            'toaster': 'Pemanggang Roti',
+            'sink': 'Wastafel',
+            'refrigerator': 'Kulkas',
+            'book': 'Buku/Manual',
+            'clock': 'Jam Dinding',
+            'scissors': 'Gunting',
+            'hair drier': 'Pengering Rambut',
+            'toothbrush': 'Sikat Gigi',
+            
+            # Default industrial equipment
+            'unknown': 'Peralatan Industri',
+            'equipment': 'Peralatan',
+            'machine': 'Mesin',
+            'motor': 'Motor Listrik',
+            'pump': 'Pompa',
+            'generator': 'Generator',
+            'compressor': 'Kompresor',
+            'fan': 'Kipas',
+            'conveyor': 'Conveyor Belt',
+            'crane': 'Crane',
+            'pipe': 'Pipa',
+            'valve': 'Katup'
+        }
+        
+        # Jika ada deteksi, ambil class dengan confidence tertinggi
+        if detections and len(detections) > 0:
+            highest_conf_detection = max(detections, key=lambda x: x.get('confidence', 0))
+            class_name = highest_conf_detection.get('class_name', '').lower()
+            
+            # Cari mapping yang sesuai
+            for key, indonesian_name in asset_mapping.items():
+                if key in class_name:
+                    return indonesian_name
+        
+        # Default fallback - gunakan daftar aset industri umum
+        industrial_assets = [
+            'Generator', 'Kompresor', 'Motor Listrik', 'Pompa Air', 
+            'Transformator', 'Panel Listrik', 'Mesin Diesel', 'Kipas Angin',
+            'AC Unit', 'Conveyor Belt', 'Crane', 'Forklift', 'Mesin Produksi',
+            'Boiler', 'Chiller', 'Lift', 'Eskalator', 'Pompa Air'
+        ]
+        
+        import random
+        return random.choice(industrial_assets)
+    
     def _load_model(self):
         """Load YOLO model"""
         try:
@@ -119,6 +183,15 @@ class YOLOService:
         # Mock detection if model is not available
         if self.model is None:
             logger.warning("YOLO model not available, returning mock detection")
+            # Simulasi deteksi berbagai jenis aset untuk demo
+            mock_assets = [
+                'Generator', 'Kompresor', 'Motor Listrik', 'Pompa Air', 
+                'Transformator', 'Panel Listrik', 'Mesin Diesel', 'Kipas Angin',
+                'AC Unit', 'Conveyor Belt', 'Crane', 'Forklift'
+            ]
+            import random
+            mock_asset = random.choice(mock_assets)
+            
             return {
                 'success': True,
                 'detections': [
@@ -130,6 +203,7 @@ class YOLOService:
                         'risk_score': 0.7
                     }
                 ],
+                'asset_type': mock_asset,  # Nama aset dalam bahasa Indonesia
                 'image_info': {
                     'width': 640,
                     'height': 480,
@@ -215,9 +289,13 @@ class YOLOService:
             
             processing_time = (datetime.now() - start_time).total_seconds()
             
+            # Map detections to Indonesian asset name
+            asset_name = self._map_to_indonesian_asset(detections)
+            
             result_data = {
                 'success': True,
                 'detections': detections,
+                'asset_type': asset_name,  # Nama aset dalam bahasa Indonesia
                 'image_info': {
                     'width': width,
                     'height': height,

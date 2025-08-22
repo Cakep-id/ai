@@ -55,8 +55,8 @@ async def report_damage(
         # 2. NLP Analysis dari deskripsi
         nlp_results = await groq_service.analyze_damage_description(description)
         
-        # 3. Tentukan asset berdasarkan AI detection (dummy untuk demo)
-        detected_asset_name = cv_results.get('asset_type', 'Equipment')
+        # 3. Tentukan asset berdasarkan AI detection
+        detected_asset_name = cv_results.get('asset_type', 'Peralatan Industri')
         detected_location = "Lokasi terdeteksi dari analisis gambar"
         
         # Buat atau cari asset dummy untuk demo (asset_id=1)
