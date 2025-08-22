@@ -1,6 +1,7 @@
 """
 Risk Engine untuk CAKEP.id EWS
 Menggabungkan hasil CV dan NLP untuk menghasilkan risk assessment
+Updated: Menggunakan Groq API untuk generate prosedur repair
 """
 
 import os
@@ -9,6 +10,9 @@ from typing import Dict, List, Optional, Any, Tuple
 from datetime import datetime
 from loguru import logger
 from dotenv import load_dotenv
+
+# Import Groq service untuk procedure generation
+from .groq_service import groq_service
 
 # Load environment variables
 load_dotenv()
@@ -299,8 +303,84 @@ class RiskEngine:
         return '; '.join(rationale_parts)
     
     def _generate_procedures(self, cv_results: Dict, nlp_results: Dict, 
-                           risk_level: str) -> List[Dict[str, Any]]:
-        """Generate repair procedures berdasarkan analisis"""
+                           risk_level: str, asset_type: str = None, 
+                           damage_category: str = None) -> List[Dict[str, Any]]:
+        """Generate repair procedures menggunakan Groq AI API"""
+        
+        try:
+            # Siapkan context untuk Groq
+            context = self._prepare_procedure_context(
+                cv_results, nlp_results, risk_level, asset_type, damage_category
+            )
+            
+            # Generate procedure menggunakan Groq API
+            groq_response = groq_service.generate_repair_procedure(context)
+            
+            if groq_response['success']:
+                # Parse response dari Groq
+                procedure_text = groq_response.get('procedure', '')
+                
+                procedure = {
+                    'title': f"Prosedur Perbaikan - {risk_level} Priority",
+                    'description': procedure_text,
+                    'generated_by': 'groq_ai',
+                    'priority': risk_level,
+                    'estimated_duration': groq_response.get('estimated_hours', 4),
+                    'estimated_cost': groq_response.get('estimated_cost', 0),
+                    'required_skills': groq_response.get('required_skills', []),
+                    'materials_needed': groq_response.get('materials', []),
+                    'safety_requirements': groq_response.get('safety_notes', ''),
+                    'generated_at': datetime.now().isoformat()
+                }
+                
+                return [procedure]
+            else:
+                # Fallback ke template jika Groq gagal
+                logger.warning("Groq procedure generation failed, using fallback template")
+                return self._generate_fallback_procedures(cv_results, nlp_results, risk_level)
+                
+        except Exception as e:
+            logger.error(f"Procedure generation error: {e}")
+            return self._generate_fallback_procedures(cv_results, nlp_results, risk_level)
+    
+    def _prepare_procedure_context(self, cv_results: Dict, nlp_results: Dict, 
+                                 risk_level: str, asset_type: str = None, 
+                                 damage_category: str = None) -> Dict:
+        """Siapkan context untuk Groq procedure generation"""
+        
+        context = {
+            'risk_level': risk_level,
+            'asset_type': asset_type or 'unknown',
+            'damage_category': damage_category or 'general'
+        }
+        
+        # Tambahkan info dari CV results
+        if cv_results and cv_results.get('success'):
+            detections = cv_results.get('detections', [])
+            if detections:
+                context['visual_damages'] = [
+                    {
+                        'type': d.get('class', 'unknown'),
+                        'confidence': d.get('confidence', 0),
+                        'severity': d.get('severity', 'medium')
+                    }
+                    for d in detections
+                ]
+        
+        # Tambahkan info dari NLP results
+        if nlp_results and nlp_results.get('success'):
+            context['text_analysis'] = {
+                'category': nlp_results.get('category', ''),
+                'confidence': nlp_results.get('confidence', 0),
+                'keyphrases': nlp_results.get('keyphrases', []),
+                'severity': nlp_results.get('severity', 'medium')
+            }
+        
+        return context
+    
+    def _generate_fallback_procedures(self, cv_results: Dict, nlp_results: Dict, 
+                                    risk_level: str) -> List[Dict[str, Any]]:
+        """Generate fallback procedures jika Groq API gagal"""
         
         procedures = []
         
@@ -308,19 +388,20 @@ class RiskEngine:
         primary_template = self._select_primary_template(cv_results, nlp_results)
         
         if primary_template:
-            template_info = self.procedure_templates[primary_template]
+            template_info = self.procedure_templates.get(primary_template, {})
             
             # Customize steps berdasarkan risk level
             customized_steps = self._customize_procedure_steps(
-                template_info['base_steps'].copy(),
+                template_info.get('base_steps', []).copy(),
                 risk_level,
                 cv_results,
                 nlp_results
             )
             
             procedure = {
-                'title': template_info['title'],
+                'title': template_info.get('title', 'Prosedur Perbaikan Umum'),
                 'steps': customized_steps,
+                'generated_by': 'template_fallback',
                 'priority': risk_level,
                 'estimated_duration': self._estimate_duration(len(customized_steps), risk_level),
                 'required_skills': self._get_required_skills(primary_template),
@@ -330,7 +411,7 @@ class RiskEngine:
             procedures.append(procedure)
         
         # Tambahkan procedure umum jika diperlukan
-        if risk_level == 'HIGH':
+        if risk_level == 'CRITICAL':
             procedures.append(self._get_emergency_procedure())
         
         return procedures

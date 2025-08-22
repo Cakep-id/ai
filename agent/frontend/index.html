@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CAKEP.id EWS - Admin Dashboard</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1><i class="fas fa-shield-alt"></i> CAKEP.id EWS - Admin Dashboard</h1>
+                <div class="user-info">
+                    <span>Admin</span>
+                    <i class="fas fa-user-circle"></i>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="nav-tabs">
+            <button class="nav-tab active" data-tab="validation">
+                <i class="fas fa-check-circle"></i> Antrian Validasi
+            </button>
+            <button class="nav-tab" data-tab="reports">
+                <i class="fas fa-edit"></i> Edit Laporan
+            </button>
+            <button class="nav-tab" data-tab="upload">
+                <i class="fas fa-database"></i> Data Training
+            </button>
+            <button class="nav-tab" data-tab="monitoring">
+                <i class="fas fa-chart-line"></i> Monitor Sistem
+            </button>
+            <button class="nav-tab" data-tab="training">
+                <i class="fas fa-brain"></i> Data Training
+            </button>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Validation Tab -->
+            <div id="validationTab" class="tab-content active">
+                <div class="section-header">
+                    <h2>Antrian Validasi</h2>
+                    <button class="btn btn-primary" id="refreshValidationBtn">
+                        <i class="fas fa-refresh"></i> Refresh
+                    </button>
+                </div>
+
+                <div class="filter-bar">
+                    <select id="typeFilter">
+                        <option value="">Semua Tipe</option>
+                        <option value="detection">Deteksi CV</option>
+                        <option value="nlp_analysis">Analisis NLP</option>
+                        <option value="risk_assessment">Penilaian Risiko</option>
+                        <option value="procedure">Prosedur</option>
+                        <option value="schedule">Jadwal</option>
+                    </select>
+                    <select id="priorityFilter">
+                        <option value="">Semua Prioritas</option>
+                        <option value="HIGH">Tinggi</option>
+                        <option value="MEDIUM">Sedang</option>
+                        <option value="LOW">Rendah</option>
+                    </select>
+                </div>
+
+                <div id="validationQueue" class="validation-queue">
+                    <!-- Item validasi akan dimuat di sini -->
+                </div>
+            </div>
+
+            <!-- Reports Management Tab -->
+            <div id="reportsTab" class="tab-content">
+                <div class="section-header">
+                    <h2>Edit Laporan & Risk Level</h2>
+                    <button class="btn btn-primary" id="refreshReportsBtn">
+                        <i class="fas fa-refresh"></i> Refresh
+                    </button>
+                </div>
+
+                <div class="filter-bar">
+                    <select id="reportRiskFilter">
+                        <option value="">Semua Risk Level</option>
+                        <option value="HIGH">High</option>
+                        <option value="MEDIUM">Medium</option>
+                        <option value="LOW">Low</option>
+                    </select>
+                    <select id="reportStatusFilter">
+                        <option value="">Semua Status</option>
+                        <option value="pending">Pending</option>
+                        <option value="under_review">Under Review</option>
+                        <option value="approved">Approved</option>
+                        <option value="rejected">Rejected</option>
+                    </select>
+                </div>
+
+                <div id="reportsQueue" class="reports-queue">
+                    <!-- Laporan akan dimuat di sini -->
+                </div>
+            </div>
+
+            <!-- Risk Management Tab -->
+            <div id="uploadTab" class="tab-content">
+                <div class="section-header">
+                    <h2>Manajemen Risiko & Data Training</h2>
+                </div>
+
+                <div class="upload-section">
+                    <div class="upload-card">
+                        <h3><i class="fas fa-images"></i> Upload Gambar Training</h3>
+                        <div class="upload-area" id="imageUploadArea">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <p>Seret & lepas gambar di sini atau <span class="upload-link">pilih file</span></p>
+                            <input type="file" id="imageUpload" multiple accept="image/*" hidden>
+                        </div>
+                        
+                        <div class="risk-category-selector">
+                            <label>Kategori Risiko:</label>
+                            <div class="risk-buttons">
+                                <button type="button" class="risk-btn low" data-risk="LOW">
+                                    <i class="fas fa-check-circle"></i> LOW RISK
+                                </button>
+                                <button type="button" class="risk-btn medium" data-risk="MEDIUM">
+                                    <i class="fas fa-exclamation-triangle"></i> MEDIUM RISK
+                                </button>
+                                <button type="button" class="risk-btn high" data-risk="HIGH">
+                                    <i class="fas fa-times-circle"></i> HIGH RISK
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <button class="btn btn-primary" id="uploadWithRiskBtn" disabled>
+                            <i class="fas fa-upload"></i> Upload & Kategorikan
+                        </button>
+                    </div>
+                </div>
+
+                <div class="training-status">
+                    <h3><i class="fas fa-brain"></i> Status Model AI</h3>
+                    <div class="status-cards">
+                        <div class="status-card">
+                            <h4>Auto Training</h4>
+                            <div class="status-indicator active">
+                                <i class="fas fa-sync-alt rotating"></i>
+                                <span>Aktif - Model dilatih otomatis setiap ada data baru</span>
+                            </div>
+                        </div>
+                        <div class="status-card">
+                            <h4>Data Training</h4>
+                            <div class="stats-grid">
+                                <div class="stat-item">
+                                    <span class="stat-number" id="lowRiskCount">0</span>
+                                    <span class="stat-label">Low Risk</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-number" id="mediumRiskCount">0</span>
+                                    <span class="stat-label">Medium Risk</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-number" id="highRiskCount">0</span>
+                                    <span class="stat-label">High Risk</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                </div>
+
+                <div id="training-status" class="training-status">
+                    <!-- Status pelatihan akan dimuat di sini -->
+                </div>
+            </div>
+
+            <!-- System Monitor Tab -->
+                        <!-- Monitoring Tab -->
+            <div id="monitoringTab" class="tab-content">
+                <div class="section-header">
+                    <h2>Monitor Sistem</h2>
+                    <button class="btn btn-primary" id="refreshSystemBtn">
+                        <i class="fas fa-refresh"></i> Refresh
+                    </button>
+                </div>
+
+                <div class="status-grid">
+                    <div class="status-card">
+                        <h3>Status Layanan</h3>
+                        <div id="serviceList">
+                            <!-- Status layanan akan dimuat di sini -->
+                        </div>
+                    </div>
+
+                    <div class="status-card">
+                        <h3>Metrik Performa</h3>
+                        <div id="performanceList">
+                            <!-- Metrik performa akan dimuat di sini -->
+                        </div>
+                    </div>
+
+                    <div class="status-card">
+                        <h3>Log Error</h3>
+                        <div id="errorList">
+                            <!-- Log error akan dimuat di sini -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Training Data Tab -->
+            <div id="trainingTab" class="tab-content">
+                <div class="section-header">
+                    <h2>Manajemen Data Training</h2>
+                </div>
+
+                <div class="training-summary" id="trainingSummary">
+                    <h3>Ringkasan Data Training</h3>
+                    <!-- Ringkasan data training akan dimuat di sini -->
+                </div>
+
+                <div class="batch-preparation">
+                    <h3>Siapkan Batch Training</h3>
+                    <div class="batch-controls">
+                        <select id="data-type-select" class="form-input">
+                            <option value="yolo_detection">Deteksi YOLO</option>
+                            <option value="nlp_analysis">Analisis NLP</option>
+                            <option value="risk_assessment">Penilaian Risiko</option>
+                            <option value="scheduling">Penjadwalan</option>
+                        </select>
+                        <input type="number" id="prepareBatchSize" value="50" min="10" max="200" class="form-input" placeholder="Ukuran batch">
+                        <input type="text" id="batch-name-input" placeholder="Nama batch (opsional)" class="form-input">
+                        <button class="btn btn-success" id="prepareBatchBtn">
+                            <i class="fas fa-database"></i> Siapkan Batch
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+                <!-- Validation Modal -->
+        <div id="validation-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 id="modal-title">Validasi Item</h3>
+                    <span class="modal-close" onclick="closeModal()">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <div id="modal-content">
+                        <!-- Konten modal akan dimuat di sini -->
+                    </div>
+                    <div class="modal-actions">
+                        <button class="btn btn-success" id="approveBtn">
+                            <i class="fas fa-check"></i> Setujui
+                        </button>
+                        <button class="btn btn-danger" id="rejectBtn">
+                            <i class="fas fa-times"></i> Tolak
+                        </button>
+                        <button class="btn btn-secondary" onclick="closeModal()">Batal</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading overlay -->
+        <div id="loading-overlay" class="loading-overlay">
+            <div class="loading-spinner">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Memuat...</p>
+            </div>
+        </div>
+
+        <!-- Loading overlay -->
+        <div id="loading-overlay" class="loading-overlay">
+            <div class="loading-spinner">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Loading...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>

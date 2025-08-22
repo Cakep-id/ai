@@ -8,11 +8,13 @@ from .yolo_service import yolo_service
 from .groq_service import groq_service
 from .risk_engine import risk_engine
 from .scheduler import scheduler_service
+from .validation_service import validation_service
 
 __all__ = [
     'db_service',
     'yolo_service', 
     'groq_service',
     'risk_engine',
-    'scheduler_service'
+    'scheduler_service',
+    'validation_service'
 ]

@@ -141,6 +141,239 @@ class GroqService:
                 'recommendations': []
             }
     
+    async def analyze_damage_description(self, description: str, asset_context: str = None) -> Dict[str, Any]:
+        """
+        Analisis deskripsi kerusakan untuk menentukan kategori dan tingkat kerusakan
+        Method ini digunakan oleh user_endpoints.py
+        
+        Args:
+            description: Deskripsi kerusakan dari user
+            asset_context: Konteks aset (opsional)
+        
+        Returns:
+            Dict dengan category, confidence, severity, dll.
+        """
+        try:
+            # Gunakan method analyze yang sudah ada
+            result = self.analyze(description, asset_context)
+            
+            # Format hasil untuk compatibility dengan endpoint
+            return {
+                'success': result.get('success', True),
+                'category': result.get('category', 'unknown'),
+                'detected_damage': result.get('category', 'Unknown Damage'),
+                'confidence': result.get('confidence', 0.5),
+                'severity': result.get('severity', 'medium'),
+                'risk_indicators': result.get('risk_indicators', []),
+                'recommendations': result.get('recommendations', []),
+                'keyphrases': result.get('keyphrases', [])
+            }
+            
+        except Exception as e:
+            logger.error(f"Error in analyze_damage_description: {e}")
+            return {
+                'success': False,
+                'category': 'unknown',
+                'detected_damage': 'Unknown Damage', 
+                'confidence': 0.0,
+                'severity': 'unknown',
+                'risk_indicators': [],
+                'recommendations': [],
+                'keyphrases': []
+            }
+    
+    async def generate_repair_procedures(self, damage_description: str, cv_results: Dict = None, risk_level: str = 'MEDIUM') -> List[Dict[str, Any]]:
+        """
+        Generate repair procedures berdasarkan damage description dan CV results
+        Method ini dipanggil oleh user_endpoints.py
+        
+        Args:
+            damage_description: Deskripsi kerusakan
+            cv_results: Hasil computer vision (opsional)
+            risk_level: Level risiko (LOW/MEDIUM/HIGH/CRITICAL)
+        
+        Returns:
+            List prosedur perbaikan dengan format standar
+        """
+        try:
+            if not self.client:
+                logger.warning("Groq client not available, using fallback procedures")
+                return self._get_fallback_procedures(damage_description, risk_level)
+            
+            # Buat context untuk generate procedures
+            context = {
+                'damage_description': damage_description,
+                'risk_level': risk_level,
+                'cv_results': cv_results or {},
+                'asset_type': 'equipment'  # default
+            }
+            
+            # Extract asset type dari deskripsi jika memungkinkan
+            description_lower = damage_description.lower()
+            if 'pompa' in description_lower:
+                context['asset_type'] = 'pompa'
+            elif 'pipa' in description_lower:
+                context['asset_type'] = 'pipa'
+            elif 'motor' in description_lower:
+                context['asset_type'] = 'motor'
+            elif 'tangki' in description_lower:
+                context['asset_type'] = 'tangki'
+            
+            # Generate procedures menggunakan AI
+            prompt = self._create_repair_procedure_prompt(context)
+            
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": "You are an expert maintenance engineer. Generate detailed repair procedures in Indonesian."},
+                    {"role": "user", "content": prompt}
+                ],
+                temperature=0.7,
+                max_tokens=1500
+            )
+            
+            if response.choices and response.choices[0].message:
+                procedures_text = response.choices[0].message.content
+                return self._parse_procedures_text(procedures_text, risk_level)
+            else:
+                return self._get_fallback_procedures(damage_description, risk_level)
+                
+        except Exception as e:
+            logger.error(f"Error generating repair procedures: {e}")
+            return self._get_fallback_procedures(damage_description, risk_level)
+    
+    def _create_repair_procedure_prompt(self, context: Dict) -> str:
+        """Create prompt untuk generate repair procedures"""
+        damage_desc = context.get('damage_description', '')
+        risk_level = context.get('risk_level', 'MEDIUM')
+        asset_type = context.get('asset_type', 'equipment')
+        
+        prompt = f"""Buatkan prosedur perbaikan detail untuk kerusakan berikut:
+
+INFORMASI:
+- Asset Type: {asset_type}
+- Risk Level: {risk_level}
+- Deskripsi Kerusakan: {damage_desc}
+
+REQUIREMENTS:
+1. Buat prosedur step-by-step yang mudah diikuti teknisi
+2. Sesuaikan detail dengan risk level {risk_level}
+3. Sertakan safety precautions
+4. Estimasi waktu dan material yang diperlukan
+5. Gunakan Bahasa Indonesia yang jelas
+
+Format output sebagai list prosedur dengan:
+- Langkah-langkah detail
+- Estimasi waktu
+- Material/tools needed
+- Safety notes
+
+Contoh format:
+1. Matikan sistem dan pastikan keamanan area kerja (15 menit)
+2. Siapkan tools: kunci pas, seal baru, pembersih (5 menit)
+3. Lepas komponen yang rusak dengan hati-hati (30 menit)
+dst."""
+        
+        return prompt
+    
+    def _parse_procedures_text(self, text: str, risk_level: str) -> List[Dict[str, Any]]:
+        """Parse AI response menjadi structured procedures"""
+        procedures = []
+        
+        # Split berdasarkan numbering
+        lines = text.split('\n')
+        current_step = ""
+        
+        for line in lines:
+            line = line.strip()
+            if not line:
+                continue
+                
+            # Cek apakah line ini adalah langkah baru (dimulai dengan angka)
+            if re.match(r'^\d+\.', line):
+                if current_step:
+                    # Proses langkah sebelumnya
+                    procedures.append(self._create_procedure_item(current_step, len(procedures) + 1, risk_level))
+                current_step = line
+            else:
+                # Tambahkan ke langkah saat ini
+                if current_step:
+                    current_step += f" {line}"
+        
+        # Proses langkah terakhir
+        if current_step:
+            procedures.append(self._create_procedure_item(current_step, len(procedures) + 1, risk_level))
+        
+        return procedures if procedures else self._get_fallback_procedures("", risk_level)
+    
+    def _create_procedure_item(self, step_text: str, step_number: int, risk_level: str) -> Dict[str, Any]:
+        """Create structured procedure item"""
+        # Extract time estimate jika ada
+        time_match = re.search(r'\((\d+)\s*(?:menit|min|jam|hour)', step_text.lower())
+        estimated_minutes = int(time_match.group(1)) if time_match else (30 if risk_level in ['HIGH', 'CRITICAL'] else 15)
+        
+        return {
+            'step': step_number,
+            'description': step_text,
+            'estimated_time_minutes': estimated_minutes,
+            'safety_level': risk_level,
+            'required_tools': [],
+            'materials': [],
+            'safety_notes': "Ikuti prosedur keselamatan standar" if risk_level in ['HIGH', 'CRITICAL'] else ""
+        }
+    
+    def _get_fallback_procedures(self, damage_description: str, risk_level: str) -> List[Dict[str, Any]]:
+        """Fallback procedures jika AI tidak tersedia"""
+        base_procedures = [
+            {
+                'step': 1,
+                'description': '1. Matikan sistem dan pastikan keamanan area kerja',
+                'estimated_time_minutes': 15,
+                'safety_level': risk_level,
+                'required_tools': ['Kunci pembuka', 'APD'],
+                'materials': [],
+                'safety_notes': 'Pastikan sistem benar-benar mati sebelum memulai'
+            },
+            {
+                'step': 2,
+                'description': '2. Inspeksi visual dan identifikasi masalah utama',
+                'estimated_time_minutes': 20,
+                'safety_level': risk_level,
+                'required_tools': ['Senter', 'Kamera'],
+                'materials': [],
+                'safety_notes': 'Gunakan APD lengkap'
+            },
+            {
+                'step': 3,
+                'description': '3. Siapkan spare parts dan tools yang diperlukan',
+                'estimated_time_minutes': 10,
+                'safety_level': risk_level,
+                'required_tools': ['Tools sesuai kebutuhan'],
+                'materials': ['Spare parts', 'Consumables'],
+                'safety_notes': 'Pastikan spare parts sesuai spesifikasi'
+            },
+            {
+                'step': 4,
+                'description': '4. Lakukan perbaikan sesuai prosedur standar',
+                'estimated_time_minutes': 60 if risk_level in ['HIGH', 'CRITICAL'] else 30,
+                'safety_level': risk_level,
+                'required_tools': [],
+                'materials': [],
+                'safety_notes': 'Ikuti manual maintenance dengan teliti'
+            },
+            {
+                'step': 5,
+                'description': '5. Test dan verifikasi hasil perbaikan',
+                'estimated_time_minutes': 15,
+                'safety_level': risk_level,
+                'required_tools': ['Testing equipment'],
+                'materials': [],
+                'safety_notes': 'Pastikan semua parameter normal sebelum operasi'
+            }
+        ]
+        
+        return base_procedures
+    
     def _preprocess_text(self, text: str) -> Dict[str, Any]:
         """Preprocessing teks"""
         # Bersihkan teks
@@ -499,6 +732,136 @@ Fokus pada aspek teknis dan keamanan aset industri.
                 'success': False,
                 'error': str(e)
             }
+    
+    def generate_repair_procedure(self, context: Dict) -> Dict:
+        """
+        Generate repair procedure menggunakan Groq AI
+        
+        Args:
+            context: Dictionary berisi informasi kerusakan dan asset
+            
+        Returns:
+            Dictionary dengan procedure dan estimasi
+        """
+        try:
+            if not self._initialize_client():
+                return {'success': False, 'error': 'Groq client not initialized'}
+            
+            # Buat prompt untuk generate procedure
+            prompt = self._create_procedure_prompt(context)
+            
+            logger.info("Generating repair procedure with Groq AI")
+            
+            response = self.client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {
+                        "role": "system", 
+                        "content": "Anda adalah expert maintenance engineer yang akan memberikan prosedur perbaikan detail untuk equipment industri. Berikan response dalam format JSON dengan field: procedure (text detail), estimated_hours (number), estimated_cost (number), required_skills (array), materials (array), safety_notes (text)."
+                    },
+                    {
+                        "role": "user", 
+                        "content": prompt
+                    }
+                ],
+                max_tokens=1500,
+                temperature=0.7
+            )
+            
+            response_text = response.choices[0].message.content.strip()
+            
+            # Parse JSON response dari Groq
+            try:
+                parsed_response = json.loads(response_text)
+                
+                return {
+                    'success': True,
+                    'procedure': parsed_response.get('procedure', 'Prosedur tidak dapat di-generate'),
+                    'estimated_hours': parsed_response.get('estimated_hours', 4),
+                    'estimated_cost': parsed_response.get('estimated_cost', 0),
+                    'required_skills': parsed_response.get('required_skills', []),
+                    'materials': parsed_response.get('materials', []),
+                    'safety_notes': parsed_response.get('safety_notes', ''),
+                    'model_version': self._get_model_version(),
+                    'generated_at': datetime.now().isoformat()
+                }
+                
+            except json.JSONDecodeError:
+                # Jika response bukan JSON, ambil sebagai text biasa
+                return {
+                    'success': True,
+                    'procedure': response_text,
+                    'estimated_hours': self._estimate_hours_from_text(response_text),
+                    'estimated_cost': 0,
+                    'required_skills': [],
+                    'materials': [],
+                    'safety_notes': '',
+                    'model_version': self._get_model_version(),
+                    'generated_at': datetime.now().isoformat()
+                }
+            
+        except Exception as e:
+            logger.error(f"Groq procedure generation failed: {e}")
+            return {
+                'success': False,
+                'error': str(e)
+            }
+    
+    def _create_procedure_prompt(self, context: Dict) -> str:
+        """Create prompt untuk generate repair procedure"""
+        
+        risk_level = context.get('risk_level', 'MEDIUM')
+        asset_type = context.get('asset_type', 'equipment')
+        damage_category = context.get('damage_category', 'general')
+        
+        prompt = f"""Buatkan prosedur perbaikan detail untuk:
+
+INFORMASI ASSET:
+- Tipe Asset: {asset_type}
+- Risk Level: {risk_level}
+- Kategori Kerusakan: {damage_category}
+"""
+        
+        # Tambahkan info visual damage jika ada
+        if 'visual_damages' in context:
+            prompt += "\nDAMAGE DETECTION (Computer Vision):\n"
+            for damage in context['visual_damages']:
+                prompt += f"- {damage['type']} (confidence: {damage['confidence']:.2f}, severity: {damage['severity']})\n"
+        
+        # Tambahkan info text analysis jika ada
+        if 'text_analysis' in context:
+            text_info = context['text_analysis']
+            prompt += f"\nANALISIS TEKS:\n"
+            prompt += f"- Kategori: {text_info.get('category', 'N/A')}\n"
+            prompt += f"- Confidence: {text_info.get('confidence', 0):.2f}\n"
+            if text_info.get('keyphrases'):
+                prompt += f"- Keywords: {', '.join(text_info['keyphrases'])}\n"
+        
+        prompt += f"""
+REQUIREMENTS:
+1. Buat prosedur perbaikan step-by-step yang detail dan praktis
+2. Sesuaikan dengan risk level {risk_level} - semakin tinggi risk semakin detail dan hati-hati
+3. Sertakan estimasi waktu, biaya, skill required, dan material needed
+4. Berikan safety notes yang komprehensif
+5. Format output dalam JSON dengan structure yang diminta
+
+Berikan response dalam Bahasa Indonesia yang professional dan mudah dipahami teknisi lapangan."""
+        
+        return prompt
+    
+    def _estimate_hours_from_text(self, text: str) -> float:
+        """Estimate hours dari text jika tidak ada dalam JSON"""
+        text_lower = text.lower()
+        
+        # Simple heuristic berdasarkan keywords
+        if any(word in text_lower for word in ['emergency', 'critical', 'segera', 'urgent']):
+            return 2.0
+        elif any(word in text_lower for word in ['kompleks', 'complex', 'detail', 'thorough']):
+            return 8.0
+        elif any(word in text_lower for word in ['simple', 'sederhana', 'quick', 'cepat']):
+            return 1.0
+        else:
+            return 4.0  # default
 
 # Singleton instance
 groq_service = GroqService()

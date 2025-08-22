@@ -8,11 +8,13 @@ from . import nlp_endpoints
 from . import risk_endpoints
 from . import schedule_endpoints
 from . import admin_endpoints
+from . import validation_endpoints
 
 __all__ = [
     'cv_endpoints',
     'nlp_endpoints',
     'risk_endpoints', 
     'schedule_endpoints',
-    'admin_endpoints'
+    'admin_endpoints',
+    'validation_endpoints'
 ]

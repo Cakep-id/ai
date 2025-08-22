@@ -82,6 +82,28 @@ class DatabaseService:
             logger.error(f"Database connection test failed: {e}")
             return False
     
+    def health_check(self) -> Dict[str, Any]:
+        """Health check untuk database service"""
+        try:
+            start_time = datetime.now()
+            with self.get_session() as session:
+                session.execute(text("SELECT 1"))
+            response_time = (datetime.now() - start_time).total_seconds()
+            
+            return {
+                "status": "healthy",
+                "response_time_ms": response_time * 1000,
+                "database": DB_CONFIG['database'],
+                "host": DB_CONFIG['host']
+            }
+        except Exception as e:
+            return {
+                "status": "unhealthy",
+                "error": str(e),
+                "database": DB_CONFIG['database'],
+                "host": DB_CONFIG['host']
+            }
+    
     def execute_query(self, query: str, params: Dict = None) -> List[Dict]:
         """Execute SELECT query dan return hasil sebagai list of dict"""
         try:

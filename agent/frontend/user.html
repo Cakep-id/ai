@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CAKEP.id EWS - Lapor Kerusakan</title>
+    <link rel="stylesheet" href="/static/user-styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1><i class="fas fa-exclamation-triangle"></i> CAKEP.id EWS - Lapor Kerusakan</h1>
+                <div class="user-info">
+                    <span>User</span>
+                    <i class="fas fa-user"></i>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="nav-tabs">
+            <button class="nav-tab active" data-tab="report">
+                <i class="fas fa-plus-circle"></i> Buat Laporan
+            </button>
+            <button class="nav-tab" data-tab="my-reports">
+                <i class="fas fa-list"></i> Laporan Saya
+            </button>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Report Tab -->
+            <div id="reportTab" class="tab-content active">
+                <div class="section-header">
+                    <h2>Laporkan Kerusakan Aset</h2>
+                    <p>Upload foto kerusakan dan berikan deskripsi untuk analisis AI</p>
+                </div>
+
+                <div class="report-form">
+                    <form id="damageReportForm" enctype="multipart/form-data">
+                        <!-- Image Upload -->
+                        <div class="form-group">
+                            <label for="imageUpload"><i class="fas fa-camera"></i> Upload Foto Kerusakan</label>
+                            <div class="upload-area" id="uploadArea">
+                                <input type="file" id="imageUpload" name="image" accept="image/*" required>
+                                <div class="upload-content">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    <p>Klik untuk upload foto atau drag & drop di sini</p>
+                                    <span>Format: JPG, PNG, maksimal 10MB</span>
+                                </div>
+                                <div class="preview-container" id="previewContainer" style="display: none;">
+                                    <img id="previewImage" src="" alt="Preview">
+                                    <button type="button" class="remove-image" id="removeImage">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Description -->
+                        <div class="form-group">
+                            <label for="description"><i class="fas fa-edit"></i> Deskripsi Singkat</label>
+                            <textarea 
+                                id="description" 
+                                name="description" 
+                                placeholder="Jelaskan kondisi kerusakan yang terlihat dalam foto..."
+                                rows="4"
+                                required
+                            ></textarea>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="form-group">
+                            <button type="submit" class="btn btn-primary" id="submitBtn">
+                                <i class="fas fa-paper-plane"></i> Kirim Laporan
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Loading State -->
+                    <div class="loading-state" id="loadingState" style="display: none;">
+                        <div class="loading-spinner"></div>
+                        <p>Sedang menganalisis dengan AI...</p>
+                    </div>
+
+                    <!-- Result Display -->
+                    <div class="result-card" id="resultCard" style="display: none;">
+                        <div class="result-header">
+                            <h3><i class="fas fa-robot"></i> Hasil Analisis AI</h3>
+                        </div>
+                        <div class="result-content" id="resultContent">
+                            <!-- AI results akan ditampilkan di sini -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- My Reports Tab -->
+            <div id="myReportsTab" class="tab-content">
+                <div class="section-header">
+                    <h2>Laporan Saya</h2>
+                    <button class="btn btn-secondary" id="refreshReportsBtn">
+                        <i class="fas fa-refresh"></i> Refresh
+                    </button>
+                </div>
+
+                <div class="reports-container">
+                    <div class="loading-state" id="reportsLoading">
+                        <div class="loading-spinner"></div>
+                        <p>Memuat laporan...</p>
+                    </div>
+                    
+                    <div class="reports-list" id="reportsList">
+                        <!-- Reports akan ditampilkan di sini -->
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal untuk detail laporan -->
+    <div class="modal" id="reportModal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Detail Laporan</h3>
+                <button class="modal-close" id="modalClose">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Detail laporan akan ditampilkan di sini -->
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/user-script.js"></script>
+</body>
+</html>

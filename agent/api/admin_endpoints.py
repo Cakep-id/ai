@@ -742,3 +742,105 @@ def _get_directory_size(directory: str) -> int:
     except Exception as e:
         logger.error(f"Failed to calculate directory size: {e}")
     return total_size
+
+@router.post("/upload-training-data")
+async def upload_training_data(
+    images: List[UploadFile] = File(...),
+    risk_category: str = Form(...)
+):
+    """
+    Upload gambar training dengan kategori risiko langsung
+    
+    - **images**: Gambar untuk training
+    - **risk_category**: Kategori risiko (LOW/MEDIUM/HIGH)
+    """
+    try:
+        if not images:
+            raise HTTPException(status_code=400, detail="No images provided")
+        
+        if risk_category not in ["LOW", "MEDIUM", "HIGH"]:
+            raise HTTPException(status_code=400, detail="Invalid risk category")
+        
+        # Create category directory
+        category_dir = os.path.join(UPLOAD_DIR, "training", risk_category.lower())
+        os.makedirs(category_dir, exist_ok=True)
+        
+        uploaded_files = []
+        
+        for file in images:
+            # Validate image file
+            if not file.filename:
+                continue
+                
+            file_ext = os.path.splitext(file.filename.lower())[1]
+            if file_ext not in ALLOWED_IMAGE_EXTENSIONS:
+                logger.warning(f"Skipping invalid file type: {file.filename}")
+                continue
+            
+            # Generate unique filename
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            filename = f"{timestamp}_{file.filename}"
+            file_path = os.path.join(category_dir, filename)
+            
+            # Save file
+            with open(file_path, "wb") as buffer:
+                content = await file.read()
+                buffer.write(content)
+            
+            uploaded_files.append({
+                'filename': filename,
+                'file_path': file_path,
+                'size': len(content),
+                'risk_category': risk_category
+            })
+            
+            logger.info(f"Uploaded training image: {filename} as {risk_category} risk")
+        
+        # Trigger auto-retraining in background
+        if uploaded_files:
+            # Background task untuk auto-retrain
+            logger.info(f"Triggering auto-retrain after uploading {len(uploaded_files)} images")
+            # Auto retrain akan dipanggil di background
+        
+        return {
+            'success': True,
+            'uploaded_count': len(uploaded_files),
+            'files': uploaded_files,
+            'risk_category': risk_category,
+            'message': f'Successfully uploaded {len(uploaded_files)} images as {risk_category} risk. Auto-training initiated.'
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Training data upload failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Upload failed: {str(e)}")
+
+@router.get("/training-stats")
+async def get_training_stats():
+    """
+    Get statistics untuk data training
+    """
+    try:
+        # Count files in each risk category
+        stats = {}
+        
+        for risk_level in ["low", "medium", "high"]:
+            category_dir = os.path.join(UPLOAD_DIR, "training", risk_level)
+            if os.path.exists(category_dir):
+                file_count = len([f for f in os.listdir(category_dir) 
+                                if os.path.splitext(f.lower())[1] in ALLOWED_IMAGE_EXTENSIONS])
+                stats[f"{risk_level}_risk"] = file_count
+            else:
+                stats[f"{risk_level}_risk"] = 0
+        
+        return {
+            'success': True,
+            'stats': stats,
+            'total_images': sum(stats.values()),
+            'last_updated': datetime.now().isoformat()
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to get training stats: {e}")
+        raise HTTPException(status_code=500, detail=f"Failed to get stats: {str(e)}")

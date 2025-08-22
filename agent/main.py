@@ -16,7 +16,8 @@ import uvicorn
 from datetime import datetime
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import JSONResponse, FileResponse
 from loguru import logger
 from dotenv import load_dotenv
 
@@ -66,13 +67,35 @@ app.add_middleware(
 )
 
 # Include API routers
-from api import cv_endpoints, nlp_endpoints, risk_endpoints, schedule_endpoints, admin_endpoints
+from api import cv_endpoints, nlp_endpoints, risk_endpoints, schedule_endpoints, admin_endpoints, validation_endpoints, user_endpoints, admin_validation_endpoints
 
 app.include_router(cv_endpoints.router, prefix="/api/cv", tags=["Computer Vision"])
 app.include_router(nlp_endpoints.router, prefix="/api/nlp", tags=["NLP Analysis"])
 app.include_router(risk_endpoints.router, prefix="/api/risk", tags=["Risk Assessment"])
 app.include_router(schedule_endpoints.router, prefix="/api/schedule", tags=["Scheduling"])
 app.include_router(admin_endpoints.router, prefix="/api/admin", tags=["Administration"])
+app.include_router(validation_endpoints.router, prefix="/api/validation", tags=["Validation"])
+app.include_router(user_endpoints.router, tags=["User Reports"])
+app.include_router(admin_validation_endpoints.router, tags=["Admin Validation"])
+
+# Mount static files for frontend
+app.mount("/static", StaticFiles(directory="frontend"), name="static")
+
+# Serve admin dashboard
+@app.get("/")
+async def serve_admin_dashboard():
+    """Serve admin dashboard"""
+    return FileResponse("frontend/index.html")
+
+@app.get("/admin")
+async def serve_admin_dashboard_alt():
+    """Alternative route for admin dashboard"""
+    return FileResponse("frontend/index.html")
+
+@app.get("/user")
+async def serve_user_dashboard():
+    """Serve user dashboard untuk laporan kerusakan"""
+    return FileResponse("frontend/user.html")
 
 @app.on_event("startup")
 async def startup_event():
@@ -92,7 +115,7 @@ async def startup_event():
     # Initialize database
     try:
         db_health = db_service.health_check()
-        if db_health['success']:
+        if db_health['status'] == 'healthy':
             logger.info("✅ Database connection established")
         else:
             logger.warning("⚠️ Database connection issues")
@@ -105,7 +128,7 @@ async def startup_event():
     # Test YOLO service
     try:
         yolo_health = yolo_service.health_check()
-        if yolo_health['success']:
+        if yolo_health['status'] == 'healthy':
             logger.info("✅ YOLO service ready")
         else:
             logger.warning("⚠️ YOLO service issues")
@@ -124,8 +147,17 @@ async def startup_event():
     
     # Test Risk Engine
     try:
-        test_result = risk_engine.aggregate_risk(0.5, 0.5, 'test', 'test')
-        if test_result['success']:
+        # Create dummy test data
+        test_cv_results = {
+            'success': True,
+            'detections': [{'confidence': 0.8, 'risk_score': 0.7}]
+        }
+        test_nlp_results = {
+            'sentiment': 'negative',
+            'urgency_score': 0.6
+        }
+        test_result = risk_engine.aggregate_risk(1, test_cv_results, test_nlp_results, 'MEDIUM')
+        if test_result.get('risk_score', 0) > 0:
             logger.info("✅ Risk Engine ready")
         else:
             logger.warning("⚠️ Risk Engine issues")
@@ -139,10 +171,14 @@ async def shutdown_event():
     """Shutdown event handler"""
     logger.info("🛑 Shutting down CAKEP.id EWS AI Module...")
     
-    # Close database connections
+    # Close database connections safely
     try:
-        db_service.close_connections()
-        logger.info("✅ Database connections closed")
+        # Check if method exists before calling
+        if hasattr(db_service, 'close_connections'):
+            db_service.close_connections()
+            logger.info("✅ Database connections closed")
+        else:
+            logger.info("ℹ️ Database service cleanup not required")
     except Exception as e:
         logger.error(f"❌ Error closing database connections: {e}")
     

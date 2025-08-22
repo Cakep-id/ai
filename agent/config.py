@@ -23,12 +23,25 @@ class Settings(BaseSettings):
     
     # YOLO Configuration
     yolo_model_path: str = Field(default="models/yolo_damage_detection.pt", env="YOLO_MODEL_PATH")
-    yolo_confidence_threshold: float = Field(default=0.5, env="YOLO_CONFIDENCE_THRESHOLD")
+    yolo_conf_threshold: float = Field(default=0.25, env="YOLO_CONF_THRESHOLD")
+    yolo_iou_threshold: float = Field(default=0.45, env="YOLO_IOU_THRESHOLD")
     yolo_device: str = Field(default="auto", env="YOLO_DEVICE")
     
+    # Storage Configuration
+    storage_dir: str = Field(default="./storage", env="STORAGE_DIR")
+    max_file_size: str = Field(default="50MB", env="MAX_FILE_SIZE")
+    allowed_image_types: str = Field(default="jpg,jpeg,png,bmp,tiff", env="ALLOWED_IMAGE_TYPES")
+    
     # Risk Engine Configuration
-    risk_visual_weight: float = Field(default=0.6, env="RISK_VISUAL_WEIGHT")
-    risk_text_weight: float = Field(default=0.4, env="RISK_TEXT_WEIGHT")
+    visual_weight: float = Field(default=0.6, env="VISUAL_WEIGHT")
+    text_weight: float = Field(default=0.4, env="TEXT_WEIGHT")
+    high_risk_threshold: float = Field(default=0.75, env="HIGH_RISK_THRESHOLD")
+    medium_risk_threshold: float = Field(default=0.45, env="MEDIUM_RISK_THRESHOLD")
+    
+    # SLA Configuration
+    high_risk_sla: int = Field(default=24, env="HIGH_RISK_SLA")
+    medium_risk_sla: int = Field(default=72, env="MEDIUM_RISK_SLA")
+    low_risk_sla: int = Field(default=168, env="LOW_RISK_SLA")
     
     # Scheduler Configuration
     scheduler_default_hours: int = Field(default=8, env="SCHEDULER_DEFAULT_HOURS")
@@ -64,6 +77,7 @@ class Settings(BaseSettings):
         env_file = ".env"
         env_file_encoding = "utf-8"
         case_sensitive = False
+        protected_namespaces = ('settings_',)
     
     @property
     def database_url(self) -> str:
@@ -76,9 +90,9 @@ class Settings(BaseSettings):
         return [origin.strip() for origin in self.api_cors_origins.split(",")]
     
     @property
-    def allowed_image_extensions_list(self) -> List[str]:
-        """Get allowed image extensions as list"""
-        return [ext.strip() for ext in self.allowed_image_extensions.split(",")]
+    def allowed_image_types_list(self) -> List[str]:
+        """Get allowed image types as list"""
+        return [ext.strip() for ext in self.allowed_image_types.split(",")]
     
     @property
     def allowed_annotation_extensions_list(self) -> List[str]:
@@ -86,9 +100,9 @@ class Settings(BaseSettings):
         return [ext.strip() for ext in self.allowed_annotation_extensions.split(",")]
     
     @property
-    def upload_max_size_bytes(self) -> int:
-        """Convert upload max size to bytes"""
-        size_str = self.upload_max_size.upper()
+    def max_file_size_bytes(self) -> int:
+        """Convert max file size to bytes"""
+        size_str = self.max_file_size.upper()
         if size_str.endswith('MB'):
             return int(size_str[:-2]) * 1024 * 1024
         elif size_str.endswith('KB'):
@@ -103,10 +117,10 @@ class Settings(BaseSettings):
     def sla_hours_dict(self) -> dict:
         """Get SLA hours as dictionary"""
         return {
-            'CRITICAL': self.sla_critical_hours,
-            'HIGH': self.sla_high_hours,
-            'MEDIUM': self.sla_medium_hours,
-            'LOW': self.sla_low_hours
+            'CRITICAL': 4,  # Fixed critical hours
+            'HIGH': self.high_risk_sla,
+            'MEDIUM': self.medium_risk_sla,
+            'LOW': self.low_risk_sla
         }
     
     def is_production(self) -> bool:
@@ -138,15 +152,15 @@ def validate_yolo_config() -> bool:
     """Validate YOLO configuration"""
     return (
         settings.yolo_model_path and
-        0.0 <= settings.yolo_confidence_threshold <= 1.0
+        0.0 <= settings.yolo_conf_threshold <= 1.0
     )
 
 def validate_risk_config() -> bool:
     """Validate risk engine configuration"""
     return (
-        0.0 <= settings.risk_visual_weight <= 1.0 and
-        0.0 <= settings.risk_text_weight <= 1.0 and
-        abs(settings.risk_visual_weight + settings.risk_text_weight - 1.0) < 0.001
+        0.0 <= settings.visual_weight <= 1.0 and
+        0.0 <= settings.text_weight <= 1.0 and
+        abs(settings.visual_weight + settings.text_weight - 1.0) < 0.001
     )
 
 def get_config_summary() -> dict:
