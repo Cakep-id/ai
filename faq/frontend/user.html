@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FAQ Chatbot - Chat Interface</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/chat.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="chat-body">
+    <!-- Chat Container -->
+    <div class="chat-container">
+        <!-- Chat Header -->
+        <div class="chat-header">
+            <div class="bot-info">
+                <div class="bot-avatar">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div class="bot-details">
+                    <h1>FAQ Assistant</h1>
+                    <p class="bot-status">
+                        <span class="status-indicator online"></span>
+                        Online - Siap membantu Anda
+                    </p>
+                </div>
+            </div>
+            <div class="chat-actions">
+                <button id="clear-chat" class="btn-icon" title="Hapus Riwayat Chat">
+                    <i class="fas fa-trash"></i>
+                </button>
+                <button id="chat-settings" class="btn-icon" title="Pengaturan">
+                    <i class="fas fa-cog"></i>
+                </button>
+                <a href="/" class="btn-icon" title="Kembali ke Homepage">
+                    <i class="fas fa-home"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- Chat Messages -->
+        <div class="chat-messages" id="chat-messages">
+            <!-- Welcome Message -->
+            <div class="message bot-message welcome-message">
+                <div class="message-avatar">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div class="message-content">
+                    <div class="message-text">
+                        <h3>🤖 Selamat datang di FAQ Assistant!</h3>
+                        <p>Saya adalah chatbot yang dapat membantu menjawab pertanyaan Anda. Beberapa hal yang bisa saya lakukan:</p>
+                        <ul>
+                            <li>✨ Menjawab FAQ seputar layanan kami</li>
+                            <li>🧠 Belajar dari gaya bahasa Anda</li>
+                            <li>🔍 Mencari informasi yang relevan</li>
+                            <li>💬 Memberikan bantuan secara real-time</li>
+                        </ul>
+                        <p><strong>Silakan mulai dengan mengetik pertanyaan Anda!</strong></p>
+                    </div>
+                    <div class="message-time">Sekarang</div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="quick-actions">
+                <h4>💡 Pertanyaan Populer:</h4>
+                <div class="quick-buttons">
+                    <button class="quick-btn" data-question="Bagaimana cara reset password?">
+                        <i class="fas fa-key"></i> Reset Password
+                    </button>
+                    <button class="quick-btn" data-question="Bagaimana cara menghubungi customer service?">
+                        <i class="fas fa-headset"></i> Customer Service
+                    </button>
+                    <button class="quick-btn" data-question="Apa itu sistem FAQ?">
+                        <i class="fas fa-question-circle"></i> Tentang FAQ
+                    </button>
+                    <button class="quick-btn" data-question="Bagaimana cara menggunakan sistem ini?">
+                        <i class="fas fa-book"></i> Panduan Penggunaan
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Typing Indicator -->
+        <div class="typing-indicator" id="typing-indicator" style="display: none;">
+            <div class="message bot-message">
+                <div class="message-avatar">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div class="message-content">
+                    <div class="typing-dots">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Input -->
+        <div class="chat-input-container">
+            <form id="chat-form" class="chat-input">
+                <div class="input-wrapper">
+                    <textarea 
+                        id="user-input" 
+                        class="chat-input-field" 
+                        placeholder="Ketik pertanyaan Anda di sini..." 
+                        rows="1"
+                        maxlength="500"></textarea>
+                    <div class="input-actions">
+                        <button type="button" id="attach-btn" class="btn-icon" title="Lampiran">
+                            <i class="fas fa-paperclip"></i>
+                        </button>
+                        <button type="submit" id="send-btn" class="btn-send" title="Kirim">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="input-footer">
+                    <span class="char-count">0/500</span>
+                    <span class="input-tip">Tekan Enter untuk kirim, Shift+Enter untuk baris baru</span>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Sidebar (Hidden by default, for future features) -->
+    <div class="chat-sidebar" id="chat-sidebar" style="display: none;">
+        <div class="sidebar-header">
+            <h3>Chat Settings</h3>
+            <button id="close-sidebar" class="btn-icon">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="sidebar-content">
+            <div class="setting-group">
+                <label>Font Size</label>
+                <select id="font-size-setting">
+                    <option value="small">Kecil</option>
+                    <option value="medium" selected>Sedang</option>
+                    <option value="large">Besar</option>
+                </select>
+            </div>
+            
+            <div class="setting-group">
+                <label>Theme</label>
+                <select id="theme-setting">
+                    <option value="light" selected>Terang</option>
+                    <option value="dark">Gelap</option>
+                    <option value="auto">Otomatis</option>
+                </select>
+            </div>
+            
+            <div class="setting-group">
+                <label>Sound Notifications</label>
+                <label class="switch">
+                    <input type="checkbox" id="sound-notifications" checked>
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay" style="display: none;">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <p>Menganalisis pertanyaan...</p>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- Chat Enhancement Features -->
+    <div class="chat-enhancements">
+        <!-- Scroll to Bottom Button -->
+        <button id="scroll-to-bottom" class="scroll-btn" style="display: none;" title="Scroll ke bawah">
+            <i class="fas fa-arrow-down"></i>
+        </button>
+        
+        <!-- Language Learning Indicator -->
+        <div id="learning-indicator" class="learning-indicator" style="display: none;">
+            <i class="fas fa-brain"></i>
+            <span>AI sedang mempelajari gaya bahasa Anda...</span>
+        </div>
+    </div>
+
+    <script src="/static/js/chat.js"></script>
+</body>
+</html>

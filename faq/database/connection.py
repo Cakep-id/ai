@@ -53,10 +53,57 @@ class SearchLogs(Base):
     result_faq_id = Column(Integer, ForeignKey('faq_dataset.id', ondelete='SET NULL'))
     similarity_score = Column(DECIMAL(5, 4))
     user_ip = Column(String(45))
+    session_id = Column(String(100))
     created_at = Column(DateTime, default=func.current_timestamp())
     
     # Relationship
     faq = relationship("FAQDataset", back_populates="search_logs")
+
+class UserSessions(Base):
+    __tablename__ = 'user_sessions'
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    session_id = Column(String(100), unique=True, nullable=False)
+    user_role = Column(String(20), default='user')  # 'admin' or 'user'
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=func.current_timestamp())
+    last_activity = Column(DateTime, default=func.current_timestamp())
+    
+    # Relationship
+    language_patterns = relationship("UserLanguagePatterns", back_populates="session")
+    chat_feedbacks = relationship("ChatFeedback", back_populates="session")
+
+class UserLanguagePatterns(Base):
+    __tablename__ = 'user_language_patterns'
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    session_id = Column(String(100), ForeignKey('user_sessions.session_id'), nullable=False)
+    pattern_type = Column(String(50))  # 'greeting', 'question_style', 'vocabulary', etc.
+    pattern_value = Column(Text)
+    frequency = Column(Integer, default=1)
+    confidence_score = Column(DECIMAL(5, 4), default=1.0000)
+    created_at = Column(DateTime, default=func.current_timestamp())
+    updated_at = Column(DateTime, default=func.current_timestamp(), onupdate=func.current_timestamp())
+    
+    # Relationship
+    session = relationship("UserSessions", back_populates="language_patterns")
+
+class ChatFeedback(Base):
+    __tablename__ = 'chat_feedback'
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    session_id = Column(String(100), ForeignKey('user_sessions.session_id'), nullable=False)
+    user_message = Column(Text, nullable=False)
+    bot_response = Column(Text, nullable=False)
+    faq_id = Column(Integer, ForeignKey('faq_dataset.id', ondelete='SET NULL'))
+    feedback_type = Column(String(20))  # 'helpful', 'not_helpful', 'partially_helpful'
+    feedback_text = Column(Text)
+    similarity_score = Column(DECIMAL(5, 4))
+    created_at = Column(DateTime, default=func.current_timestamp())
+    
+    # Relationships
+    session = relationship("UserSessions", back_populates="chat_feedbacks")
+    faq = relationship("FAQDataset")
 
 class DatabaseManager:
     def __init__(self):

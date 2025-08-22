@@ -1,9 +1,9 @@
 """
-Flask Backend untuk FAQ NLP System
+Flask Backend untuk FAQ NLP System dengan AI Language Learning
 Main application file
 """
 
-from flask import Flask, request, jsonify, render_template, send_from_directory
+from flask import Flask, request, jsonify, render_template, session
 from flask_cors import CORS
 from dotenv import load_dotenv
 import os
@@ -13,6 +13,7 @@ from datetime import datetime
 # Import modules
 from database.connection import db_manager
 from services.faq_service import faq_service
+from services.language_service import language_service
 from nlp.processor import nlp_processor
 
 # Load environment variables
@@ -32,10 +33,42 @@ def get_client_ip():
     else:
         return request.environ['HTTP_X_FORWARDED_FOR']
 
+def get_or_create_session():
+    """Get or create user session"""
+    if 'user_session_id' not in session:
+        # Create new session
+        result = language_service.create_or_get_session()
+        if result['success']:
+            session['user_session_id'] = result['session_id']
+            session['user_role'] = result['user_role']
+        else:
+            session['user_session_id'] = None
+            session['user_role'] = 'user'
+    
+    return session.get('user_session_id'), session.get('user_role', 'user')
+
+# Routes
 @app.route('/')
 def index():
-    """Serve frontend HTML"""
-    return render_template('index.html')
+    """Serve main page - redirect to chat for users"""
+    session_id, user_role = get_or_create_session()
+    
+    if user_role == 'admin':
+        return render_template('admin.html')
+    else:
+        return render_template('chat.html')
+
+@app.route('/admin')
+def admin():
+    """Admin interface"""
+    session['user_role'] = 'admin'
+    return render_template('admin.html')
+
+@app.route('/chat')
+def chat():
+    """User chat interface"""
+    session['user_role'] = 'user'
+    return render_template('chat.html')
 
 @app.route('/api/health', methods=['GET'])
 def health_check():
@@ -48,7 +81,7 @@ def health_check():
             'status': 'healthy' if db_status else 'unhealthy',
             'database': 'connected' if db_status else 'disconnected',
             'timestamp': datetime.now().isoformat(),
-            'version': '1.0.0'
+            'version': '2.0.0'
         }), 200 if db_status else 500
         
     except Exception as e:
@@ -58,9 +91,168 @@ def health_check():
             'timestamp': datetime.now().isoformat()
         }), 500
 
+@app.route('/api/session', methods=['GET', 'POST'])
+def manage_session():
+    """Manage user session"""
+    if request.method == 'POST':
+        data = request.get_json() or {}
+        user_role = data.get('role', 'user')
+        
+        result = language_service.create_or_get_session(user_role=user_role)
+        if result['success']:
+            session['user_session_id'] = result['session_id']
+            session['user_role'] = result['user_role']
+        
+        return jsonify(result)
+    
+    else:
+        session_id, user_role = get_or_create_session()
+        return jsonify({
+            'success': True,
+            'session_id': session_id,
+            'user_role': user_role
+        })
+
+@app.route('/api/chat', methods=['POST'])
+def chat_with_ai():
+    """AI Chat endpoint dengan language learning"""
+    try:
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({
+                'success': False,
+                'message': 'Data tidak boleh kosong'
+            }), 400
+        
+        query = data.get('message', '').strip()
+        
+        if not query:
+            return jsonify({
+                'success': False,
+                'message': 'Pesan tidak boleh kosong'
+            }), 400
+        
+        # Get session
+        session_id, user_role = get_or_create_session()
+        user_ip = get_client_ip()
+        
+        # Analyze user message untuk language learning
+        language_service.analyze_user_message(query, session_id)
+        
+        # Search for FAQ dengan threshold rendah untuk chat
+        search_result = faq_service.search_faq(
+            query=query,
+            threshold=0.15,  # Threshold rendah untuk chat yang lebih fleksibel
+            max_results=1,
+            user_ip=user_ip
+        )
+        
+        if search_result['success'] and search_result['results']:
+            result = search_result['results'][0]
+            
+            # Adapt response style based on user's language patterns
+            adapted_answer = language_service.adapt_response_style(
+                result['answer'], 
+                session_id
+            )
+            
+            # Save chat feedback
+            language_service.save_chat_feedback(
+                session_id=session_id,
+                user_message=query,
+                bot_response=adapted_answer,
+                faq_id=result['faq_id'],
+                feedback_type='helpful',
+                similarity_score=result['similarity_score']
+            )
+            
+            return jsonify({
+                'success': True,
+                'response': adapted_answer,
+                'metadata': {
+                    'matched_question': result['question'],
+                    'similarity_score': result['similarity_score'],
+                    'match_type': result['match_type'],
+                    'faq_id': result['faq_id']
+                }
+            })
+        
+        else:
+            # No FAQ found, return helpful response
+            response = ("Maaf, saya belum memiliki informasi tentang pertanyaan tersebut. "
+                       "Apakah Anda bisa menggunakan kata kunci yang berbeda atau "
+                       "menghubungi customer service untuk bantuan lebih lanjut?")
+            
+            # Adapt response style
+            adapted_response = language_service.adapt_response_style(response, session_id)
+            
+            # Save chat feedback
+            language_service.save_chat_feedback(
+                session_id=session_id,
+                user_message=query,
+                bot_response=adapted_response,
+                feedback_type='not_helpful'
+            )
+            
+            return jsonify({
+                'success': True,
+                'response': adapted_response,
+                'metadata': {
+                    'matched_question': None,
+                    'similarity_score': 0,
+                    'match_type': 'no_match'
+                }
+            })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': f'Error server: {str(e)}'
+        }), 500
+
+@app.route('/api/chat/feedback', methods=['POST'])
+def chat_feedback():
+    """Endpoint untuk user feedback pada chat"""
+    try:
+        data = request.get_json()
+        session_id, user_role = get_or_create_session()
+        
+        feedback_type = data.get('feedback_type', 'neutral')  # helpful, not_helpful, neutral
+        feedback_text = data.get('feedback_text', '')
+        user_message = data.get('user_message', '')
+        bot_response = data.get('bot_response', '')
+        faq_id = data.get('faq_id')
+        
+        result = language_service.save_chat_feedback(
+            session_id=session_id,
+            user_message=user_message,
+            bot_response=bot_response,
+            faq_id=faq_id,
+            feedback_type=feedback_type,
+            feedback_text=feedback_text
+        )
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': f'Error saving feedback: {str(e)}'
+        }), 500
+
+# FAQ Management Endpoints (Admin only for some)
 @app.route('/api/faq', methods=['POST'])
 def add_faq():
-    """Add new FAQ"""
+    """Add new FAQ (Admin only)"""
+    session_id, user_role = get_or_create_session()
+    
+    if user_role != 'admin':
+        return jsonify({
+            'success': False,
+            'message': 'Admin access required'
+        }), 403
+    
     try:
         data = request.get_json()
         
@@ -142,82 +334,6 @@ def get_faqs():
             'data': []
         }), 500
 
-@app.route('/api/faq/<int:faq_id>', methods=['GET'])
-def get_faq(faq_id):
-    """Get FAQ by ID"""
-    try:
-        include_variations = request.args.get('include_variations', 'true').lower() == 'true'
-        
-        result = faq_service.get_faq_by_id(faq_id, include_variations)
-        
-        return jsonify(result), 200 if result['success'] else 404
-        
-    except Exception as e:
-        return jsonify({
-            'success': False,
-            'message': f'Error server: {str(e)}'
-        }), 500
-
-@app.route('/api/faq/<int:faq_id>', methods=['PUT'])
-def update_faq(faq_id):
-    """Update FAQ by ID"""
-    try:
-        data = request.get_json()
-        
-        if not data:
-            return jsonify({
-                'success': False,
-                'message': 'Data tidak boleh kosong'
-            }), 400
-        
-        question = data.get('question')
-        answer = data.get('answer')
-        category = data.get('category')
-        is_active = data.get('is_active')
-        variations = data.get('variations')
-        
-        # Process variations
-        processed_variations = None
-        if variations is not None:
-            processed_variations = []
-            if isinstance(variations, str):
-                variations = [v.strip() for v in variations.replace(',', '\n').split('\n') if v.strip()]
-            
-            for var in variations:
-                if isinstance(var, str) and var.strip():
-                    processed_variations.append(var.strip())
-        
-        result = faq_service.update_faq(
-            faq_id=faq_id,
-            question=question,
-            answer=answer,
-            category=category,
-            is_active=is_active,
-            variations=processed_variations
-        )
-        
-        return jsonify(result), 200 if result['success'] else 400
-        
-    except Exception as e:
-        return jsonify({
-            'success': False,
-            'message': f'Error server: {str(e)}'
-        }), 500
-
-@app.route('/api/faq/<int:faq_id>', methods=['DELETE'])
-def delete_faq(faq_id):
-    """Delete FAQ by ID"""
-    try:
-        result = faq_service.delete_faq(faq_id)
-        
-        return jsonify(result), 200 if result['success'] else 404
-        
-    except Exception as e:
-        return jsonify({
-            'success': False,
-            'message': f'Error server: {str(e)}'
-        }), 500
-
 @app.route('/api/search', methods=['POST'])
 def search_faq():
     """Search FAQ"""
@@ -232,7 +348,7 @@ def search_faq():
             }), 400
         
         query = data.get('query', '').strip()
-        threshold = float(data.get('threshold', 0.3))
+        threshold = float(data.get('threshold', 0.2))
         max_results = int(data.get('max_results', 10))
         
         if not query:
@@ -261,38 +377,56 @@ def search_faq():
             'results': []
         }), 500
 
-@app.route('/api/search', methods=['GET'])
-def search_faq_get():
-    """Search FAQ via GET parameter"""
+@app.route('/api/language/insights', methods=['GET'])
+def get_language_insights():
+    """Get language learning insights (Admin only)"""
+    session_id, user_role = get_or_create_session()
+    
+    if user_role != 'admin':
+        return jsonify({
+            'success': False,
+            'message': 'Admin access required'
+        }), 403
+    
     try:
-        query = request.args.get('q', '').strip()
-        threshold = float(request.args.get('threshold', 0.3))
-        max_results = int(request.args.get('max_results', 10))
+        days = int(request.args.get('days', 7))
+        target_session = request.args.get('session_id')
         
-        if not query:
-            return jsonify({
-                'success': False,
-                'message': 'Query pencarian tidak boleh kosong',
-                'results': []
-            }), 400
-        
-        # Get client IP
-        user_ip = get_client_ip()
-        
-        result = faq_service.search_faq(
-            query=query,
-            threshold=threshold,
-            max_results=max_results,
-            user_ip=user_ip
+        result = language_service.get_learning_insights(
+            session_id=target_session,
+            days=days
         )
         
-        return jsonify(result), 200
+        return jsonify(result)
         
     except Exception as e:
         return jsonify({
             'success': False,
-            'message': f'Error server: {str(e)}',
-            'results': []
+            'message': f'Error getting insights: {str(e)}'
+        }), 500
+
+@app.route('/api/statistics', methods=['GET'])
+def get_statistics():
+    """Get search statistics (Admin only)"""
+    session_id, user_role = get_or_create_session()
+    
+    if user_role != 'admin':
+        return jsonify({
+            'success': False,
+            'message': 'Admin access required'
+        }), 403
+    
+    try:
+        limit = int(request.args.get('limit', 100))
+        
+        result = faq_service.get_search_statistics(limit)
+        
+        return jsonify(result), 200 if result['success'] else 500
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': f'Error server: {str(e)}'
         }), 500
 
 @app.route('/api/categories', methods=['GET'])
@@ -316,42 +450,6 @@ def get_categories():
             'success': False,
             'message': f'Error server: {str(e)}',
             'data': []
-        }), 500
-
-@app.route('/api/statistics', methods=['GET'])
-def get_statistics():
-    """Get search statistics"""
-    try:
-        limit = int(request.args.get('limit', 100))
-        
-        result = faq_service.get_search_statistics(limit)
-        
-        return jsonify(result), 200 if result['success'] else 500
-        
-    except Exception as e:
-        return jsonify({
-            'success': False,
-            'message': f'Error server: {str(e)}'
-        }), 500
-
-@app.route('/api/train', methods=['POST'])
-def train_model():
-    """Endpoint untuk training model (placeholder)"""
-    try:
-        # Untuk sekarang, ini hanya placeholder
-        # Bisa diimplementasikan untuk retrain TF-IDF vectorizer
-        # atau model NLP lainnya
-        
-        return jsonify({
-            'success': True,
-            'message': 'Model training completed (placeholder)',
-            'timestamp': datetime.now().isoformat()
-        }), 200
-        
-    except Exception as e:
-        return jsonify({
-            'success': False,
-            'message': f'Error training model: {str(e)}'
         }), 500
 
 @app.errorhandler(404)
@@ -391,5 +489,6 @@ if __name__ == '__main__':
     port = int(os.getenv('PORT', 5000))
     debug = os.getenv('FLASK_DEBUG', 'False').lower() == 'true'
     
-    print(f"Starting FAQ NLP System on http://{host}:{port}")
+    print(f"Starting FAQ NLP System v2.0 on http://{host}:{port}")
+    print("Features: AI Language Learning, Admin/User Modes")
     app.run(host=host, port=port, debug=debug)

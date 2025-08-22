@@ -26,6 +26,30 @@ class FAQApp {
             });
         });
 
+        // Live Chat
+        document.getElementById('send-message').addEventListener('click', () => {
+            this.sendChatMessage();
+        });
+
+        document.getElementById('chat-input').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                this.sendChatMessage();
+            }
+        });
+
+        document.getElementById('clear-chat').addEventListener('click', () => {
+            this.clearChat();
+        });
+
+        // Chat suggestions
+        document.querySelectorAll('.suggestion-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const text = e.target.dataset.text;
+                document.getElementById('chat-input').value = text;
+                this.sendChatMessage();
+            });
+        });
+
         // Search form
         document.getElementById('search-btn').addEventListener('click', () => {
             this.searchFAQ();
@@ -92,7 +116,7 @@ class FAQApp {
 
     initTabs() {
         // Show initial tab
-        this.switchTab('search');
+        this.switchTab('chat');
     }
 
     switchTab(tabName) {
@@ -116,6 +140,187 @@ class FAQApp {
         } else if (tabName === 'stats') {
             this.loadStatistics();
         }
+    }
+
+    // Live Chat Functions
+    async sendChatMessage() {
+        const input = document.getElementById('chat-input');
+        const message = input.value.trim();
+        
+        if (!message) return;
+
+        // Add user message to chat
+        this.addMessageToChat(message, 'user');
+        
+        // Clear input
+        input.value = '';
+
+        // Show typing indicator
+        this.showTypingIndicator();
+
+        try {
+            // Search for FAQ
+            const data = await this.apiRequest('/search', {
+                method: 'POST',
+                body: JSON.stringify({
+                    query: message,
+                    threshold: 0.2,
+                    max_results: 1
+                })
+            });
+
+            // Hide typing indicator
+            this.hideTypingIndicator();
+
+            if (data.results && data.results.length > 0) {
+                const result = data.results[0];
+                
+                // Add bot response
+                this.addMessageToChat(result.answer, 'bot', {
+                    question: result.question,
+                    similarity: result.similarity_score,
+                    matchType: result.match_type
+                });
+
+                // Add suggestions for related questions
+                this.addChatSuggestions([
+                    'Apakah ada pertanyaan lain?',
+                    'Bisakah dijelaskan lebih detail?',
+                    'Ada informasi tambahan?'
+                ]);
+                
+            } else {
+                // No FAQ found, provide helpful response
+                this.addMessageToChat(
+                    'Maaf, saya belum memiliki informasi tentang pertanyaan tersebut. ' +
+                    'Apakah Anda bisa menggunakan kata kunci yang berbeda atau menghubungi customer service untuk bantuan lebih lanjut?',
+                    'bot'
+                );
+
+                this.addChatSuggestions([
+                    'Bagaimana cara menghubungi customer service?',
+                    'Coba tanyakan hal lain',
+                    'Lihat daftar FAQ tersedia'
+                ]);
+            }
+
+        } catch (error) {
+            this.hideTypingIndicator();
+            this.addMessageToChat(
+                'Maaf, terjadi kesalahan saat memproses pertanyaan Anda. Silakan coba lagi atau hubungi customer service.',
+                'bot'
+            );
+            console.error('Chat error:', error);
+        }
+    }
+
+    addMessageToChat(text, sender, metadata = null) {
+        const chatMessages = document.getElementById('chat-messages');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${sender}-message`;
+        
+        const currentTime = new Date().toLocaleTimeString('id-ID', { 
+            hour: '2-digit', 
+            minute: '2-digit' 
+        });
+
+        let metadataHtml = '';
+        if (metadata) {
+            metadataHtml = `
+                <div class="message-metadata">
+                    <small>
+                        Berdasarkan: "${this.escapeHtml(metadata.question)}" 
+                        (${(metadata.similarity * 100).toFixed(1)}% match)
+                    </small>
+                </div>
+            `;
+        }
+
+        messageDiv.innerHTML = `
+            <div class="message-avatar">
+                <i class="fas fa-${sender === 'user' ? 'user' : 'robot'}"></i>
+            </div>
+            <div class="message-content">
+                <div class="message-text">${this.escapeHtml(text)}</div>
+                ${metadataHtml}
+                <div class="message-time">${currentTime}</div>
+            </div>
+        `;
+
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    showTypingIndicator() {
+        const chatMessages = document.getElementById('chat-messages');
+        const typingDiv = document.createElement('div');
+        typingDiv.className = 'message bot-message typing-indicator';
+        typingDiv.id = 'typing-indicator';
+        
+        typingDiv.innerHTML = `
+            <div class="message-avatar">
+                <i class="fas fa-robot"></i>
+            </div>
+            <div class="message-content">
+                <div class="message-text">
+                    <div class="typing-dots">
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                    </div>
+                    Sedang mengetik...
+                </div>
+            </div>
+        `;
+
+        chatMessages.appendChild(typingDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    hideTypingIndicator() {
+        const typingIndicator = document.getElementById('typing-indicator');
+        if (typingIndicator) {
+            typingIndicator.remove();
+        }
+    }
+
+    addChatSuggestions(suggestions) {
+        const chatMessages = document.getElementById('chat-messages');
+        const suggestionsDiv = document.createElement('div');
+        suggestionsDiv.className = 'bot-suggestions';
+        
+        suggestionsDiv.innerHTML = suggestions.map(suggestion => 
+            `<span class="bot-suggestion" onclick="app.handleSuggestionClick('${suggestion}')">${suggestion}</span>`
+        ).join('');
+
+        // Add to last bot message
+        const lastBotMessage = chatMessages.querySelector('.bot-message:last-child .message-content');
+        if (lastBotMessage) {
+            lastBotMessage.appendChild(suggestionsDiv);
+        }
+    }
+
+    handleSuggestionClick(suggestion) {
+        document.getElementById('chat-input').value = suggestion;
+        this.sendChatMessage();
+    }
+
+    clearChat() {
+        const chatMessages = document.getElementById('chat-messages');
+        chatMessages.innerHTML = `
+            <div class="message bot-message">
+                <div class="message-avatar">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div class="message-content">
+                    <div class="message-text">
+                        Halo! Saya FAQ Assistant. Silakan tanyakan apapun yang ingin Anda ketahui. 
+                        Saya akan membantu mencari jawaban yang tepat untuk Anda.
+                    </div>
+                    <div class="message-time">Sekarang</div>
+                </div>
+            </div>
+        `;
     }
 
     updateThresholdValue() {
@@ -212,7 +417,7 @@ class FAQApp {
             if (data.results.length > 0) {
                 this.showToast(`Ditemukan ${data.results.length} hasil`, 'success');
             } else {
-                this.showToast('Tidak ada hasil yang ditemukan', 'info');
+                this.showToast('Tidak ada hasil yang ditemukan. Coba turunkan threshold atau gunakan kata kunci berbeda.', 'info');
             }
 
         } catch (error) {

@@ -153,12 +153,22 @@ class NLPProcessor:
         )
         
     def preprocess_text(self, text):
-        """Preprocess text untuk cleaning dan normalisasi"""
+        """Preprocess text untuk cleaning dan normalisasi dengan Indonesian language focus"""
         if not text:
             return ""
         
         # Lowercase
         text = text.lower()
+        
+        # Normalize common Indonesian question words
+        text = text.replace('bgmn', 'bagaimana')
+        text = text.replace('gmn', 'bagaimana') 
+        text = text.replace('gimana', 'bagaimana')
+        text = text.replace('caranya', 'cara')
+        text = text.replace('resetnya', 'reset')
+        text = text.replace('passwordnya', 'password')
+        text = text.replace('katanya', 'kata')
+        text = text.replace('sandinya', 'sandi')
         
         # Remove punctuation
         text = text.translate(str.maketrans('', '', string.punctuation))
@@ -175,16 +185,27 @@ class NLPProcessor:
         # Remove stopwords dan stemming
         processed_tokens = []
         for token in tokens:
-            if token not in self.stop_words and len(token) > 2:
-                # Simple stemming for Indonesian
-                if token.endswith('nya'):
-                    token = token[:-3]
-                elif token.endswith('an'):
-                    token = token[:-2]
-                elif token.endswith('kan'):
-                    token = token[:-3]
+            if token not in self.stop_words and len(token) > 1:
+                # Enhanced stemming for Indonesian
+                stemmed = token
                 
-                processed_tokens.append(token)
+                # Common Indonesian suffixes
+                if token.endswith('nya'):
+                    stemmed = token[:-3]
+                elif token.endswith('kan'):
+                    stemmed = token[:-3]
+                elif token.endswith('an'):
+                    stemmed = token[:-2]
+                elif token.endswith('lah'):
+                    stemmed = token[:-3]
+                elif token.endswith('kah'):
+                    stemmed = token[:-3]
+                
+                # Keep original if stemmed becomes too short
+                if len(stemmed) > 2:
+                    processed_tokens.append(stemmed)
+                else:
+                    processed_tokens.append(token)
         
         return ' '.join(processed_tokens)
     
@@ -236,21 +257,90 @@ class NLPProcessor:
         
         return similarities
     
-    def find_best_match(self, query, faq_data, threshold=0.3):
-        """Find best matching FAQ untuk query"""
+    def find_best_match(self, query, faq_data, threshold=0.2):
+        """Find best matching FAQ untuk query dengan multiple matching strategies"""
         if not faq_data:
             return None
         
+        # Strategy 1: Exact keyword matching
+        exact_match = self.find_exact_keyword_match(query, faq_data)
+        if exact_match:
+            return exact_match
+        
+        # Strategy 2: TF-IDF similarity
+        tfidf_match = self.find_tfidf_match(query, faq_data, threshold)
+        if tfidf_match:
+            return tfidf_match
+        
+        # Strategy 3: Simple word overlap dengan threshold rendah
+        simple_match = self.find_simple_word_match(query, faq_data, 0.1)
+        if simple_match:
+            return simple_match
+        
+        return None
+    
+    def find_exact_keyword_match(self, query, faq_data):
+        """Find exact keyword matches"""
+        query_words = set(self.preprocess_text(query).split())
+        
+        best_match = None
+        best_score = 0
+        
+        for faq in faq_data:
+            # Check main question
+            question_words = set(self.preprocess_text(faq.get('question', '')).split())
+            overlap = len(query_words.intersection(question_words))
+            
+            if overlap >= 2:  # At least 2 words match
+                score = overlap / max(len(query_words), len(question_words))
+                if score > best_score:
+                    best_score = score
+                    best_match = {
+                        'faq': faq,
+                        'similarity_score': score,
+                        'matched_question': faq.get('question', ''),
+                        'match_type': 'exact_keyword'
+                    }
+            
+            # Check variations
+            variations = faq.get('variations', [])
+            for var in variations:
+                var_words = set(self.preprocess_text(var.get('variation_question', '')).split())
+                overlap = len(query_words.intersection(var_words))
+                
+                if overlap >= 2:
+                    score = overlap / max(len(query_words), len(var_words))
+                    if score > best_score:
+                        best_score = score
+                        best_match = {
+                            'faq': faq,
+                            'similarity_score': score,
+                            'matched_question': var.get('variation_question', ''),
+                            'match_type': 'exact_keyword_variation'
+                        }
+        
+        return best_match
+    
+    def find_tfidf_match(self, query, faq_data, threshold):
+        """Find match using TF-IDF similarity"""
         # Extract questions dan answers
         questions = []
-        for faq in faq_data:
+        question_map = []
+        
+        for i, faq in enumerate(faq_data):
             # Include main question
             questions.append(faq.get('question', ''))
+            question_map.append({'faq_index': i, 'type': 'main', 'question': faq.get('question', '')})
             
-            # Include variations jika ada
+            # Include variations
             variations = faq.get('variations', [])
             for var in variations:
                 questions.append(var.get('variation_question', ''))
+                question_map.append({
+                    'faq_index': i, 
+                    'type': 'variation', 
+                    'question': var.get('variation_question', '')
+                })
         
         # Calculate similarities
         similarities = self.calculate_similarity(query, questions)
@@ -265,32 +355,60 @@ class NLPProcessor:
         if best_score < threshold:
             return None
         
-        # Map back ke FAQ data
-        current_index = 0
-        for i, faq in enumerate(faq_data):
+        # Map back to FAQ
+        match_info = question_map[best_index]
+        faq = faq_data[match_info['faq_index']]
+        
+        return {
+            'faq': faq,
+            'similarity_score': best_score,
+            'matched_question': match_info['question'],
+            'match_type': match_info['type']
+        }
+    
+    def find_simple_word_match(self, query, faq_data, threshold):
+        """Simple word overlap matching as fallback"""
+        query_words = set(self.preprocess_text(query).split())
+        
+        best_match = None
+        best_score = 0
+        
+        for faq in faq_data:
             # Check main question
-            if current_index == best_index:
-                return {
-                    'faq': faq,
-                    'similarity_score': best_score,
-                    'matched_question': faq.get('question', ''),
-                    'match_type': 'main'
-                }
-            current_index += 1
+            question_words = set(self.preprocess_text(faq.get('question', '')).split())
+            if query_words and question_words:
+                intersection = query_words.intersection(question_words)
+                union = query_words.union(question_words)
+                score = len(intersection) / len(union) if union else 0
+                
+                if score >= threshold and score > best_score:
+                    best_score = score
+                    best_match = {
+                        'faq': faq,
+                        'similarity_score': score,
+                        'matched_question': faq.get('question', ''),
+                        'match_type': 'word_overlap'
+                    }
             
             # Check variations
             variations = faq.get('variations', [])
             for var in variations:
-                if current_index == best_index:
-                    return {
-                        'faq': faq,
-                        'similarity_score': best_score,
-                        'matched_question': var.get('variation_question', ''),
-                        'match_type': 'variation'
-                    }
-                current_index += 1
+                var_words = set(self.preprocess_text(var.get('variation_question', '')).split())
+                if query_words and var_words:
+                    intersection = query_words.intersection(var_words)
+                    union = query_words.union(var_words)
+                    score = len(intersection) / len(union) if union else 0
+                    
+                    if score >= threshold and score > best_score:
+                        best_score = score
+                        best_match = {
+                            'faq': faq,
+                            'similarity_score': score,
+                            'matched_question': var.get('variation_question', ''),
+                            'match_type': 'word_overlap_variation'
+                        }
         
-        return None
+        return best_match
 
 # Global NLP processor instance
 nlp_processor = NLPProcessor()

@@ -19,7 +19,10 @@
 
         <!-- Navigation -->
         <nav class="nav-tabs">
-            <button class="tab-btn active" data-tab="search">
+            <button class="tab-btn active" data-tab="chat">
+                <i class="fas fa-comments"></i> Live Chat
+            </button>
+            <button class="tab-btn" data-tab="search">
                 <i class="fas fa-search"></i> Pencarian FAQ
             </button>
             <button class="tab-btn" data-tab="add">
@@ -32,6 +35,55 @@
                 <i class="fas fa-chart-bar"></i> Statistik
             </button>
         </nav>
+
+        <!-- Live Chat Tab -->
+        <div id="chat-tab" class="tab-content active">
+            <div class="card">
+                <div class="card-header">
+                    <h2><i class="fas fa-comments"></i> FAQ Assistant - Live Chat</h2>
+                    <button id="clear-chat" class="btn btn-secondary">
+                        <i class="fas fa-trash"></i> Clear Chat
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div id="chat-container" class="chat-container">
+                        <div id="chat-messages" class="chat-messages">
+                            <div class="message bot-message">
+                                <div class="message-avatar">
+                                    <i class="fas fa-robot"></i>
+                                </div>
+                                <div class="message-content">
+                                    <div class="message-text">
+                                        Halo! Saya FAQ Assistant. Silakan tanyakan apapun yang ingin Anda ketahui. 
+                                        Saya akan membantu mencari jawaban yang tepat untuk Anda.
+                                    </div>
+                                    <div class="message-time">Sekarang</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="chat-input-container">
+                            <div class="chat-input-wrapper">
+                                <input type="text" id="chat-input" placeholder="Ketik pertanyaan Anda di sini..." class="chat-input">
+                                <button id="send-message" class="btn btn-primary send-btn">
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                            </div>
+                            <div class="chat-suggestions" id="chat-suggestions">
+                                <button class="suggestion-btn" data-text="Bagaimana cara reset password?">
+                                    Reset Password
+                                </button>
+                                <button class="suggestion-btn" data-text="Apa itu machine learning?">
+                                    Machine Learning
+                                </button>
+                                <button class="suggestion-btn" data-text="Cara menghubungi customer service">
+                                    Customer Service
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- Search Tab -->
         <div id="search-tab" class="tab-content active">

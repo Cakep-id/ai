@@ -120,8 +120,8 @@ class FAQService:
         finally:
             session.close()
     
-    def search_faq(self, query, threshold=0.3, max_results=10, user_ip=None):
-        """Search FAQ berdasarkan query dengan NLP"""
+    def search_faq(self, query, threshold=0.2, max_results=10, user_ip=None):
+        """Search FAQ berdasarkan query dengan NLP - improved version"""
         if not query or not query.strip():
             return {
                 'success': False,
@@ -142,7 +142,12 @@ class FAQService:
                     'results': []
                 }
             
-            # Find best matches menggunakan NLP
+            # Debug: Print available FAQs
+            print(f"Available FAQs: {len(faqs_data['data'])}")
+            for faq in faqs_data['data'][:3]:  # Print first 3 for debugging
+                print(f"- {faq['question'][:50]}...")
+            
+            # Find best matches menggunakan improved NLP
             best_match = nlp_processor.find_best_match(
                 query.strip(), 
                 faqs_data['data'], 
@@ -169,9 +174,12 @@ class FAQService:
                 # Log search
                 self._log_search(session, query.strip(), faq_data['id'], 
                                best_match['similarity_score'], user_ip)
+                
+                print(f"Match found: {best_match['match_type']} - Score: {best_match['similarity_score']}")
             else:
                 # Log search tanpa hasil
                 self._log_search(session, query.strip(), None, 0.0, user_ip)
+                print(f"No match found for: {query}")
             
             return {
                 'success': True,
@@ -181,6 +189,7 @@ class FAQService:
             }
             
         except Exception as e:
+            print(f"Search error: {e}")
             return {
                 'success': False,
                 'message': f'Error searching FAQ: {str(e)}',
