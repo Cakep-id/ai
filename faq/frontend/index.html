@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FAQ NLP System</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1><i class="fas fa-brain"></i> FAQ NLP System</h1>
+                <p>Sistem FAQ berbasis Natural Language Processing</p>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="nav-tabs">
+            <button class="tab-btn active" data-tab="search">
+                <i class="fas fa-search"></i> Pencarian FAQ
+            </button>
+            <button class="tab-btn" data-tab="add">
+                <i class="fas fa-plus"></i> Tambah FAQ
+            </button>
+            <button class="tab-btn" data-tab="manage">
+                <i class="fas fa-list"></i> Kelola FAQ
+            </button>
+            <button class="tab-btn" data-tab="stats">
+                <i class="fas fa-chart-bar"></i> Statistik
+            </button>
+        </nav>
+
+        <!-- Search Tab -->
+        <div id="search-tab" class="tab-content active">
+            <div class="card">
+                <div class="card-header">
+                    <h2><i class="fas fa-search"></i> Pencarian FAQ</h2>
+                </div>
+                <div class="card-body">
+                    <div class="search-form">
+                        <div class="input-group">
+                            <input type="text" id="search-query" placeholder="Ketik pertanyaan Anda di sini..." class="form-input">
+                            <button id="search-btn" class="btn btn-primary">
+                                <i class="fas fa-search"></i> Cari
+                            </button>
+                        </div>
+                        <div class="search-options">
+                            <label for="similarity-threshold">Threshold Similarity:</label>
+                            <input type="range" id="similarity-threshold" min="0.1" max="1.0" step="0.1" value="0.3">
+                            <span id="threshold-value">0.3</span>
+                        </div>
+                    </div>
+                    
+                    <div id="search-results" class="search-results"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add FAQ Tab -->
+        <div id="add-tab" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <h2><i class="fas fa-plus"></i> Tambah FAQ Baru</h2>
+                </div>
+                <div class="card-body">
+                    <form id="add-faq-form" class="faq-form">
+                        <div class="form-group">
+                            <label for="question">Pertanyaan Utama *</label>
+                            <textarea id="question" class="form-input" placeholder="Masukkan pertanyaan utama..." rows="3" required></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="answer">Jawaban *</label>
+                            <textarea id="answer" class="form-input" placeholder="Masukkan jawaban..." rows="4" required></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="category">Kategori</label>
+                            <select id="category" class="form-input">
+                                <option value="general">Umum</option>
+                                <option value="account">Akun</option>
+                                <option value="technology">Teknologi</option>
+                                <option value="support">Dukungan</option>
+                                <option value="billing">Billing</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="variations">Variasi Pertanyaan (opsional)</label>
+                            <textarea id="variations" class="form-input" placeholder="Masukkan variasi pertanyaan, satu per baris..." rows="3"></textarea>
+                            <small class="form-help">Pisahkan setiap variasi dengan baris baru</small>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Simpan FAQ
+                            </button>
+                            <button type="button" id="train-btn" class="btn btn-secondary">
+                                <i class="fas fa-cogs"></i> Train Model
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Manage FAQ Tab -->
+        <div id="manage-tab" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <h2><i class="fas fa-list"></i> Kelola FAQ</h2>
+                    <div class="header-actions">
+                        <button id="refresh-faqs" class="btn btn-secondary">
+                            <i class="fas fa-refresh"></i> Refresh
+                        </button>
+                        <select id="filter-category" class="form-input">
+                            <option value="">Semua Kategori</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="faq-list" class="faq-list"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Statistics Tab -->
+        <div id="stats-tab" class="tab-content">
+            <div class="card">
+                <div class="card-header">
+                    <h2><i class="fas fa-chart-bar"></i> Statistik Sistem</h2>
+                    <button id="refresh-stats" class="btn btn-secondary">
+                        <i class="fas fa-refresh"></i> Refresh
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div id="statistics" class="statistics"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="edit-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Edit FAQ</h3>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="edit-faq-form">
+                    <input type="hidden" id="edit-faq-id">
+                    
+                    <div class="form-group">
+                        <label for="edit-question">Pertanyaan Utama *</label>
+                        <textarea id="edit-question" class="form-input" rows="3" required></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="edit-answer">Jawaban *</label>
+                        <textarea id="edit-answer" class="form-input" rows="4" required></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="edit-category">Kategori</label>
+                        <select id="edit-category" class="form-input">
+                            <option value="general">Umum</option>
+                            <option value="account">Akun</option>
+                            <option value="technology">Teknologi</option>
+                            <option value="support">Dukungan</option>
+                            <option value="billing">Billing</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="edit-variations">Variasi Pertanyaan</label>
+                        <textarea id="edit-variations" class="form-input" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Update
+                        </button>
+                        <button type="button" class="btn btn-secondary cancel-btn">
+                            Batal
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div id="loading" class="loading">
+        <div class="spinner"></div>
+        <p>Memproses...</p>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
