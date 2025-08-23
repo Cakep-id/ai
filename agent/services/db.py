@@ -75,8 +75,8 @@ class DatabaseService:
     def test_connection(self) -> bool:
         """Test koneksi database"""
         try:
-            with self.get_session() as session:
-                session.execute(text("SELECT 1"))
+            with self.engine.connect() as connection:
+                connection.execute(text("SELECT 1"))
             return True
         except Exception as e:
             logger.error(f"Database connection test failed: {e}")
@@ -86,8 +86,8 @@ class DatabaseService:
         """Health check untuk database service"""
         try:
             start_time = datetime.now()
-            with self.get_session() as session:
-                session.execute(text("SELECT 1"))
+            with self.engine.connect() as connection:
+                connection.execute(text("SELECT 1"))
             response_time = (datetime.now() - start_time).total_seconds()
             
             return {
@@ -107,8 +107,8 @@ class DatabaseService:
     def execute_query(self, query: str, params: Dict = None) -> List[Dict]:
         """Execute SELECT query dan return hasil sebagai list of dict"""
         try:
-            with self.get_session() as session:
-                result = session.execute(text(query), params or {})
+            with self.engine.connect() as connection:
+                result = connection.execute(text(query), params or {})
                 columns = result.keys()
                 return [dict(zip(columns, row)) for row in result.fetchall()]
         except SQLAlchemyError as e:
@@ -118,15 +118,18 @@ class DatabaseService:
     def fetch_all(self, query: str, params=None) -> List[tuple]:
         """Execute SELECT query dan return semua hasil sebagai list of tuples"""
         try:
-            with self.get_session() as session:
+            # Use direct connection for simple SELECT queries to avoid session issues
+            with self.engine.connect() as connection:
                 if params:
-                    # Ensure params is a dict for named parameters
+                    # Convert list/tuple params to positional parameters for raw SQL
                     if isinstance(params, (list, tuple)):
-                        result = session.execute(text(query), list(params))
+                        # For MySQL with direct connection, use tuple parameters
+                        result = connection.execute(text(query), tuple(params))
                     else:
-                        result = session.execute(text(query), params)
+                        # Dict parameters
+                        result = connection.execute(text(query), params)
                 else:
-                    result = session.execute(text(query))
+                    result = connection.execute(text(query))
                 return result.fetchall()
         except SQLAlchemyError as e:
             logger.error(f"Fetch all failed: {e}")
@@ -135,15 +138,17 @@ class DatabaseService:
     def fetch_one(self, query: str, params=None) -> Optional[tuple]:
         """Execute SELECT query dan return satu hasil sebagai tuple"""
         try:
-            with self.get_session() as session:
+            with self.engine.connect() as connection:
                 if params:
-                    # Ensure params is a dict for named parameters
+                    # Convert list/tuple params to positional parameters for raw SQL
                     if isinstance(params, (list, tuple)):
-                        result = session.execute(text(query), list(params))
+                        # For MySQL with direct connection, use tuple parameters
+                        result = connection.execute(text(query), tuple(params))
                     else:
-                        result = session.execute(text(query), params)
+                        # Dict parameters
+                        result = connection.execute(text(query), params)
                 else:
-                    result = session.execute(text(query))
+                    result = connection.execute(text(query))
                 return result.fetchone()
         except SQLAlchemyError as e:
             logger.error(f"Fetch one failed: {e}")

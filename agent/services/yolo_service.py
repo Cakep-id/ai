@@ -19,7 +19,7 @@ class YOLOService:
     
     def __init__(self):
         self.model = None
-        self.model_path = os.getenv('MODEL_PATH', './ml/models/yolo_latest.pt')
+        self.model_path = os.getenv('MODEL_PATH', '../yolov8n.pt')
         self.conf_threshold = float(os.getenv('YOLO_CONF_THRESHOLD', 0.25))
         self.iou_threshold = float(os.getenv('YOLO_IOU_THRESHOLD', 0.45))
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
@@ -196,11 +196,24 @@ class YOLOService:
                 'success': True,
                 'detections': [
                     {
-                        'class_name': 'mock_damage',
+                        'name': 'korosi_ringan',
                         'confidence': 0.85,
-                        'bbox': [100, 100, 200, 200],
-                        'area': 10000,
-                        'risk_score': 0.7
+                        'bbox': {
+                            'x': 100,
+                            'y': 100,
+                            'width': 200,
+                            'height': 200
+                        }
+                    },
+                    {
+                        'name': 'retak_permukaan',
+                        'confidence': 0.78,
+                        'bbox': {
+                            'x': 300,
+                            'y': 150,
+                            'width': 180,
+                            'height': 120
+                        }
                     }
                 ],
                 'asset_type': mock_asset,  # Nama aset dalam bahasa Indonesia

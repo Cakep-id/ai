@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pipeline Inspection - CAKEP.id EWS</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .pipeline-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .upload-section {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .upload-area {
+            border: 3px dashed #007bff;
+            border-radius: 10px;
+            padding: 50px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+        
+        .upload-area:hover {
+            border-color: #0056b3;
+            background-color: #f8f9fa;
+        }
+        
+        .upload-area.dragover {
+            border-color: #28a745;
+            background-color: #d4edda;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+        
+        .btn-analyze {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-analyze:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,123,255,0.3);
+        }
+        
+        .btn-analyze:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .results-section {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            display: none;
+        }
+        
+        .level-badge {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 12px;
+        }
+        
+        .level-low { background: #d4edda; color: #155724; }
+        .level-medium { background: #fff3cd; color: #856404; }
+        .level-high { background: #f8d7da; color: #721c24; }
+        
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .image-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+        }
+        
+        .image-card img {
+            max-width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        
+        .image-card h4 {
+            margin: 0 0 10px 0;
+            color: #333;
+        }
+        
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #007bff;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .history-section {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .inspection-item {
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+        
+        .inspection-item:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+        
+        .inspection-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .inspection-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .inspection-date {
+            color: #6c757d;
+            font-size: 14px;
+        }
+        
+        .inspection-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .detail-item {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        
+        .detail-label {
+            font-size: 12px;
+            color: #6c757d;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+        
+        .detail-value {
+            font-weight: 600;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="pipeline-container">
+        <header style="text-align: center; margin-bottom: 40px;">
+            <h1><i class="fas fa-industry"></i> Pipeline Inspection System</h1>
+            <p>Sistem Analisis Kerusakan Pipa Industri Migas dengan AI</p>
+        </header>
+
+        <!-- Upload Section -->
+        <div class="upload-section">
+            <h2><i class="fas fa-upload"></i> Upload Gambar Pipa untuk Analisis</h2>
+            
+            <div class="upload-area" id="uploadArea">
+                <i class="fas fa-cloud-upload-alt" style="font-size: 48px; color: #007bff; margin-bottom: 20px;"></i>
+                <h3>Seret & lepas gambar di sini atau klik untuk pilih file</h3>
+                <p>Format yang didukung: JPG, PNG, BMP (Max 10MB)</p>
+                <input type="file" id="imageInput" accept="image/*" style="display: none;">
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+                <div class="form-group">
+                    <label for="namaPipa">Nama/ID Pipa *</label>
+                    <input type="text" id="namaPipa" placeholder="contoh: Pipeline-001" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="lokasiPipa">Lokasi Pipa</label>
+                    <input type="text" id="lokasiPipa" placeholder="contoh: Sector A - Main Distribution">
+                </div>
+                
+                <div class="form-group">
+                    <label for="inspectorName">Nama Inspector</label>
+                    <input type="text" id="inspectorName" placeholder="Nama inspector">
+                </div>
+            </div>
+
+            <button class="btn-analyze" id="analyzeBtn" disabled>
+                <i class="fas fa-search"></i> Analisis Gambar
+            </button>
+        </div>
+
+        <!-- Loading Section -->
+        <div class="loading-spinner" id="loadingSection">
+            <div class="spinner"></div>
+            <h3>Menganalisis gambar...</h3>
+            <p>Mohon tunggu, AI sedang memproses deteksi kerusakan</p>
+        </div>
+
+        <!-- Results Section -->
+        <div class="results-section" id="resultsSection">
+            <h2><i class="fas fa-chart-line"></i> Hasil Analisis</h2>
+            
+            <div id="analysisResults">
+                <!-- Results will be populated here -->
+            </div>
+            
+            <div class="image-grid" id="imageGrid">
+                <!-- Images will be shown here -->
+            </div>
+        </div>
+
+        <!-- History Section -->
+        <div class="history-section">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2><i class="fas fa-history"></i> Riwayat Inspeksi</h2>
+                <button class="btn-analyze" onclick="loadInspectionHistory()" style="padding: 10px 20px; font-size: 14px;">
+                    <i class="fas fa-refresh"></i> Refresh
+                </button>
+            </div>
+            
+            <div id="inspectionHistory">
+                <!-- History will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api';
+        let selectedFile = null;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            setupFileUpload();
+            setupForm();
+            loadInspectionHistory();
+        });
+
+        function setupFileUpload() {
+            const uploadArea = document.getElementById('uploadArea');
+            const imageInput = document.getElementById('imageInput');
+            const analyzeBtn = document.getElementById('analyzeBtn');
+
+            // Click to upload
+            uploadArea.addEventListener('click', () => imageInput.click());
+
+            // Drag and drop
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            });
+
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('dragover');
+            });
+
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+                handleFileSelect(e.dataTransfer.files[0]);
+            });
+
+            // File input change
+            imageInput.addEventListener('change', (e) => {
+                handleFileSelect(e.target.files[0]);
+            });
+
+            function handleFileSelect(file) {
+                if (!file) return;
+
+                const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/bmp'];
+                if (!validTypes.includes(file.type)) {
+                    alert('Format file tidak didukung. Gunakan JPG, PNG, atau BMP.');
+                    return;
+                }
+
+                if (file.size > 10 * 1024 * 1024) { // 10MB
+                    alert('Ukuran file terlalu besar. Maksimal 10MB.');
+                    return;
+                }
+
+                selectedFile = file;
+                
+                // Show preview
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    uploadArea.innerHTML = `
+                        <img src="${e.target.result}" style="max-width: 200px; max-height: 150px; border-radius: 10px; margin-bottom: 10px;">
+                        <h4>${file.name}</h4>
+                        <p>Klik untuk ganti gambar</p>
+                    `;
+                };
+                reader.readAsDataURL(file);
+
+                checkFormValidity();
+            }
+        }
+
+        function setupForm() {
+            const inputs = ['namaPipa', 'lokasiPipa', 'inspectorName'];
+            inputs.forEach(id => {
+                document.getElementById(id).addEventListener('input', checkFormValidity);
+            });
+
+            document.getElementById('analyzeBtn').addEventListener('click', analyzeImage);
+        }
+
+        function checkFormValidity() {
+            const namaPipa = document.getElementById('namaPipa').value.trim();
+            const analyzeBtn = document.getElementById('analyzeBtn');
+            
+            analyzeBtn.disabled = !(selectedFile && namaPipa);
+        }
+
+        async function analyzeImage() {
+            const analyzeBtn = document.getElementById('analyzeBtn');
+            const loadingSection = document.getElementById('loadingSection');
+            const resultsSection = document.getElementById('resultsSection');
+
+            // Disable button and show loading
+            analyzeBtn.disabled = true;
+            loadingSection.style.display = 'block';
+            resultsSection.style.display = 'none';
+
+            try {
+                const formData = new FormData();
+                formData.append('image', selectedFile);
+                formData.append('nama_pipa', document.getElementById('namaPipa').value.trim());
+                formData.append('lokasi_pipa', document.getElementById('lokasiPipa').value.trim());
+                formData.append('inspector_name', document.getElementById('inspectorName').value.trim());
+
+                const response = await fetch(`${API_BASE}/pipeline/analyze`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    displayResults(result.data);
+                    loadInspectionHistory(); // Refresh history
+                } else {
+                    alert(`Analisis gagal: ${result.message}`);
+                }
+
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Terjadi kesalahan saat analisis. Silakan coba lagi.');
+            } finally {
+                loadingSection.style.display = 'none';
+                analyzeBtn.disabled = false;
+                checkFormValidity();
+            }
+        }
+
+        function displayResults(data) {
+            const resultsSection = document.getElementById('resultsSection');
+            const analysisResults = document.getElementById('analysisResults');
+            const imageGrid = document.getElementById('imageGrid');
+
+            // Main results
+            analysisResults.innerHTML = `
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px;">
+                    <div class="detail-item">
+                        <div class="detail-label">Nama Pipa</div>
+                        <div class="detail-value">${data.nama_pipa}</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Level Kerusakan</div>
+                        <div class="detail-value">
+                            <span class="level-badge level-${data.level_kerusakan.toLowerCase()}">${data.level_kerusakan}</span>
+                        </div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Ukuran Kerusakan</div>
+                        <div class="detail-value">${data.ukuran_kerusakan_mm.toFixed(0)} mm²</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Persentase Area</div>
+                        <div class="detail-value">${data.area_percent.toFixed(1)}%</div>
+                    </div>
+                </div>
+
+                <div class="detail-item" style="margin-bottom: 20px;">
+                    <div class="detail-label">Deskripsi Kerusakan</div>
+                    <div class="detail-value">${data.deskripsi_kerusakan}</div>
+                </div>
+
+                <div class="detail-item">
+                    <div class="detail-label">Rekomendasi Tindakan</div>
+                    <div class="detail-value">${data.rekomendasi}</div>
+                </div>
+            `;
+
+            // Image results (would need API endpoint to serve images)
+            imageGrid.innerHTML = `
+                <div class="image-card">
+                    <h4>Foto Original</h4>
+                    <div style="background: #f8f9fa; height: 200px; display: flex; align-items: center; justify-content: center; border-radius: 5px;">
+                        <i class="fas fa-image" style="font-size: 48px; color: #6c757d;"></i>
+                    </div>
+                    <p>File tersimpan: ${data.foto_paths.mentah.split('/').pop()}</p>
+                </div>
+                <div class="image-card">
+                    <h4>Hasil YOLO Detection</h4>
+                    <div style="background: #f8f9fa; height: 200px; display: flex; align-items: center; justify-content: center; border-radius: 5px;">
+                        <i class="fas fa-search" style="font-size: 48px; color: #6c757d;"></i>
+                    </div>
+                    <p>File tersimpan: ${data.foto_paths.yolo.split('/').pop()}</p>
+                </div>
+                <div class="image-card">
+                    <h4>Hasil Analisis Final</h4>
+                    <div style="background: #f8f9fa; height: 200px; display: flex; align-items: center; justify-content: center; border-radius: 5px;">
+                        <i class="fas fa-chart-line" style="font-size: 48px; color: #6c757d;"></i>
+                    </div>
+                    <p>File tersimpan: ${data.foto_paths.analyzed.split('/').pop()}</p>
+                </div>
+            `;
+
+            resultsSection.style.display = 'block';
+        }
+
+        async function loadInspectionHistory() {
+            try {
+                const response = await fetch(`${API_BASE}/pipeline/inspections?limit=10&order_by_severity=true`);
+                const result = await response.json();
+
+                if (result.success) {
+                    displayInspectionHistory(result.data);
+                }
+            } catch (error) {
+                console.error('Error loading history:', error);
+            }
+        }
+
+        function displayInspectionHistory(inspections) {
+            const historyContainer = document.getElementById('inspectionHistory');
+
+            if (!inspections || inspections.length === 0) {
+                historyContainer.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #6c757d;">
+                        <i class="fas fa-inbox" style="font-size: 48px; margin-bottom: 20px;"></i>
+                        <p>Belum ada riwayat inspeksi</p>
+                    </div>
+                `;
+                return;
+            }
+
+            historyContainer.innerHTML = inspections.map(inspection => `
+                <div class="inspection-item">
+                    <div class="inspection-header">
+                        <div class="inspection-title">${inspection.nama_pipa}</div>
+                        <div>
+                            <span class="level-badge level-${inspection.level_kerusakan.toLowerCase()}">${inspection.level_kerusakan}</span>
+                            <span class="inspection-date">${formatDate(inspection.tanggal_inspeksi)}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="inspection-details">
+                        <div class="detail-item">
+                            <div class="detail-label">Lokasi</div>
+                            <div class="detail-value">${inspection.lokasi_pipa || 'Tidak diisi'}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Inspector</div>
+                            <div class="detail-value">${inspection.inspector_name || 'Tidak diisi'}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Ukuran Kerusakan</div>
+                            <div class="detail-value">${inspection.ukuran_kerusakan_mm ? inspection.ukuran_kerusakan_mm.toFixed(0) + ' mm²' : 'N/A'}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Area %</div>
+                            <div class="detail-value">${inspection.area_kerusakan_percent ? inspection.area_kerusakan_percent.toFixed(1) + '%' : 'N/A'}</div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e9ecef;">
+                        <div class="detail-label">Deskripsi Kerusakan</div>
+                        <div class="detail-value" style="margin-top: 5px;">${inspection.deskripsi_kerusakan}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function formatDate(dateString) {
+            if (!dateString) return 'N/A';
+            const date = new Date(dateString);
+            return date.toLocaleDateString('id-ID', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+    </script>
+</body>
+</html>

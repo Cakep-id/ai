@@ -9,6 +9,7 @@ from .groq_service import groq_service
 from .risk_engine import risk_engine
 from .scheduler import scheduler_service
 from .validation_service import validation_service
+from .pipeline_service import pipeline_service
 
 __all__ = [
     'db_service',
@@ -16,5 +17,6 @@ __all__ = [
     'groq_service',
     'risk_engine',
     'scheduler_service',
-    'validation_service'
+    'validation_service',
+    'pipeline_service'
 ]

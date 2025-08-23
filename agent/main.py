@@ -67,7 +67,7 @@ app.add_middleware(
 )
 
 # Include API routers
-from api import cv_endpoints, nlp_endpoints, risk_endpoints, schedule_endpoints, admin_endpoints, validation_endpoints, user_endpoints, admin_validation_endpoints
+from api import cv_endpoints, nlp_endpoints, risk_endpoints, schedule_endpoints, admin_endpoints, validation_endpoints, user_endpoints, admin_validation_endpoints, pipeline_endpoints
 
 app.include_router(cv_endpoints.router, prefix="/api/cv", tags=["Computer Vision"])
 app.include_router(nlp_endpoints.router, prefix="/api/nlp", tags=["NLP Analysis"])
@@ -77,6 +77,7 @@ app.include_router(admin_endpoints.router, prefix="/api/admin", tags=["Administr
 app.include_router(validation_endpoints.router, prefix="/api/validation", tags=["Validation"])
 app.include_router(user_endpoints.router, tags=["User Reports"])
 app.include_router(admin_validation_endpoints.router, tags=["Admin Validation"])
+app.include_router(pipeline_endpoints.router, prefix="/api", tags=["Pipeline Inspection"])
 
 # Mount static files for frontend
 app.mount("/static", StaticFiles(directory="frontend"), name="static")
@@ -96,6 +97,11 @@ async def serve_admin_dashboard_alt():
 async def serve_user_dashboard():
     """Serve user dashboard untuk laporan kerusakan"""
     return FileResponse("frontend/user.html")
+
+@app.get("/pipeline.html")
+async def serve_pipeline_inspection():
+    """Serve pipeline inspection dashboard"""
+    return FileResponse("frontend/pipeline.html")
 
 @app.on_event("startup")
 async def startup_event():
@@ -185,28 +191,6 @@ async def shutdown_event():
         logger.error(f"❌ Error closing database connections: {e}")
     
     logger.info("👋 CAKEP.id EWS AI Module shutdown completed!")
-
-# Root endpoint
-@app.get("/")
-async def root():
-    """Root endpoint dengan informasi sistem"""
-    return {
-        "message": "CAKEP.id Early Warning System AI Module",
-        "version": "1.0.0",
-        "status": "running",
-        "timestamp": datetime.now().isoformat(),
-        "endpoints": {
-            "docs": "/docs",
-            "redoc": "/redoc",
-            "health": "/health",
-            "config": "/config",
-            "cv_api": "/api/cv",
-            "nlp_api": "/api/nlp",
-            "risk_api": "/api/risk",
-            "schedule_api": "/api/schedule",
-            "admin_api": "/api/admin"
-        }
-    }
 
 # Health check endpoint
 @app.get("/health")
