@@ -16,74 +16,234 @@ from services.db import db_service
 
 router = APIRouter()
 
-@router.post("/pipeline/analyze")
-async def analyze_pipeline_image(
+@router.post("/analyze")
+async def analyze_pipeline(
     image: UploadFile = File(...),
-    nama_pipa: str = Form(...),
-    lokasi_pipa: str = Form(""),
-    inspector_name: str = Form("")
+    pipeline_id: str = Form(...),
+    location: str = Form(...),
+    inspector_name: str = Form(...)
 ):
-    """
-    Analisis gambar pipa untuk deteksi kerusakan
-    """
+    """Analyze pipeline image for damage detection and risk assessment"""
     try:
-        # Validasi file
-        if not image.filename.lower().endswith(('.jpg', '.jpeg', '.png', '.bmp')):
-            raise HTTPException(status_code=400, detail="Format file tidak didukung")
+        # Validate file type
+        if not image.content_type.startswith('image/'):
+            raise HTTPException(status_code=400, detail="File must be an image")
         
-        # Simpan file temporary
-        temp_dir = Path("temp_uploads")
-        temp_dir.mkdir(exist_ok=True)
+        # Save uploaded image
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"pipeline_{pipeline_id}_{timestamp}.{image.filename.split('.')[-1]}"
+        file_path = f"uploads/images/{filename}"
         
-        temp_file_path = temp_dir / f"{datetime.now().strftime('%Y%m%d_%H%M%S')}_{image.filename}"
+        # Ensure upload directory exists
+        os.makedirs("uploads/images", exist_ok=True)
         
-        with open(temp_file_path, "wb") as buffer:
+        # Save file
+        with open(file_path, "wb") as buffer:
             content = await image.read()
             buffer.write(content)
         
+        logger.info(f"Pipeline image uploaded: {filename}")
+        
+        # Analyze image with YOLO
+        yolo_results = yolo_service.detect_objects(file_path)
+        
+        # Analyze with NLP (if text data available)
+        nlp_results = groq_service.analyze_pipeline_condition("Pipeline inspection image analysis")
+        
+        # Calculate risk assessment
+        risk_analysis = risk_engine.aggregate_risk(
+            report_id=1,  # This would be dynamic in production
+            visual_data=yolo_results,
+            text_data=nlp_results
+        )
+        
+        # Generate unique inspection ID
+        inspection_id = f"INSP_{pipeline_id}_{timestamp}"
+        
+        # Store inspection results in database
         try:
-            # Analisis gambar
-            result = pipeline_service.analyze_pipeline_image(
-                str(temp_file_path),
-                nama_pipa,
-                lokasi_pipa,
-                inspector_name
+            conn = get_db_connection()
+            
+            # Create table if not exists
+            create_table_query = """
+            CREATE TABLE IF NOT EXISTS pipeline_inspections (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                inspection_id VARCHAR(255) UNIQUE,
+                pipeline_id VARCHAR(255),
+                location TEXT,
+                inspector_name VARCHAR(255),
+                image_path VARCHAR(500),
+                risk_level VARCHAR(50),
+                risk_score DECIMAL(5,3),
+                confidence_score DECIMAL(5,3),
+                yolo_detections JSON,
+                nlp_analysis JSON,
+                inspection_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
+            """
+            conn.execute(create_table_query)
             
-            # Cleanup temp file
-            os.unlink(temp_file_path)
+            # Insert inspection record
+            insert_query = """
+            INSERT INTO pipeline_inspections 
+            (inspection_id, pipeline_id, location, inspector_name, image_path, 
+             risk_level, risk_score, confidence_score, yolo_detections, nlp_analysis)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """
             
-            if result['success']:
-                return JSONResponse({
-                    "success": True,
-                    "message": "Analisis berhasil",
-                    "data": {
-                        "inspection_id": result['inspection_id'],
-                        "database_id": result['database_id'],
-                        "nama_pipa": result['nama_pipa'],
-                        "level_kerusakan": result['level_kerusakan'],
-                        "deskripsi_kerusakan": result['deskripsi_kerusakan'],
-                        "ukuran_kerusakan_mm": result['ukuran_kerusakan_mm'],
-                        "area_percent": result['area_percent'],
-                        "rekomendasi": result['rekomendasi'],
-                        "output_folder": result['output_folder'],
-                        "foto_paths": result['foto_paths']
-                    }
-                })
-            else:
-                return JSONResponse({
-                    "success": False,
-                    "message": result.get('message', 'Analisis gagal'),
-                    "error": result.get('error')
-                }, status_code=400)
-                
-        except Exception as e:
-            # Cleanup temp file on error
-            if temp_file_path.exists():
-                os.unlink(temp_file_path)
-            raise e
+            import json
+            conn.execute(insert_query, (
+                inspection_id,
+                pipeline_id,
+                location,
+                inspector_name,
+                file_path,
+                risk_analysis['overall_risk'],
+                risk_analysis['risk_score'],
+                risk_analysis.get('confidence', 0.8),
+                json.dumps(yolo_results),
+                json.dumps(nlp_results)
+            ))
+            conn.commit()
             
+            logger.info(f"Inspection results stored for {inspection_id}")
+            
+        except Exception as db_error:
+            logger.warning(f"Database storage failed: {db_error}")
+            # Continue without failing the analysis
+        
+        # Prepare response
+        response = {
+            "inspection_id": inspection_id,
+            "pipeline_id": pipeline_id,
+            "location": location,
+            "inspector_name": inspector_name,
+            "image_path": file_path,
+            "yolo_detection": yolo_results,
+            "nlp_analysis": nlp_results,
+            "risk_analysis": risk_analysis,
+            "timestamp": datetime.now().isoformat()
+        }
+        
+        logger.info(f"Pipeline analysis completed for {pipeline_id}")
+        return response
+        
     except Exception as e:
+        logger.error(f"Pipeline analysis error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/history")
+async def get_inspection_history(
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    pipeline_id: Optional[str] = None,
+    risk_level: Optional[str] = None,
+    limit: int = 50
+):
+    """Get pipeline inspection history with filters"""
+    try:
+        conn = get_db_connection()
+        
+        # Build query with filters
+        query = """
+        SELECT 
+            pi.inspection_id,
+            pi.pipeline_id,
+            pi.location,
+            pi.inspector_name,
+            pi.risk_level,
+            pi.risk_score,
+            pi.confidence_score,
+            pi.inspection_date,
+            CASE WHEN hf.inspection_id IS NOT NULL THEN TRUE ELSE FALSE END as has_feedback
+        FROM pipeline_inspections pi
+        LEFT JOIN human_feedback hf ON pi.inspection_id = hf.inspection_id
+        WHERE 1=1
+        """
+        
+        params = []
+        
+        if start_date:
+            query += " AND pi.inspection_date >= %s"
+            params.append(start_date)
+        
+        if end_date:
+            query += " AND pi.inspection_date <= %s"
+            params.append(end_date)
+        
+        if pipeline_id:
+            query += " AND pi.pipeline_id LIKE %s"
+            params.append(f"%{pipeline_id}%")
+        
+        if risk_level:
+            query += " AND pi.risk_level = %s"
+            params.append(risk_level)
+        
+        query += " ORDER BY pi.inspection_date DESC LIMIT %s"
+        params.append(limit)
+        
+        result = conn.execute(query, params)
+        history = []
+        
+        for row in result:
+            history.append({
+                "inspection_id": row[0],
+                "pipeline_id": row[1],
+                "location": row[2],
+                "inspector_name": row[3],
+                "risk_level": row[4],
+                "risk_score": float(row[5]),
+                "confidence_score": float(row[6]),
+                "inspection_date": row[7],
+                "has_feedback": bool(row[8])
+            })
+        
+        return history
+        
+    except Exception as e:
+        logger.error(f"Error loading inspection history: {e}")
+        return []
+
+@router.get("/inspection/{inspection_id}")
+async def get_inspection_details(inspection_id: str):
+    """Get detailed inspection results by ID"""
+    try:
+        conn = get_db_connection()
+        
+        query = """
+        SELECT 
+            inspection_id, pipeline_id, location, inspector_name,
+            image_path, risk_level, risk_score, confidence_score,
+            yolo_detections, nlp_analysis, inspection_date
+        FROM pipeline_inspections
+        WHERE inspection_id = %s
+        """
+        
+        result = conn.execute(query, (inspection_id,))
+        row = result.fetchone()
+        
+        if not row:
+            raise HTTPException(status_code=404, detail="Inspection not found")
+        
+        import json
+        
+        return {
+            "inspection_id": row[0],
+            "pipeline_id": row[1],
+            "location": row[2],
+            "inspector_name": row[3],
+            "image_path": row[4],
+            "risk_level": row[5],
+            "risk_score": float(row[6]),
+            "confidence_score": float(row[7]),
+            "yolo_detections": json.loads(row[8]) if row[8] else [],
+            "nlp_analysis": json.loads(row[9]) if row[9] else {},
+            "inspection_date": row[10]
+        }
+        
+    except Exception as e:
+        logger.error(f"Error loading inspection details: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/pipeline/inspections")

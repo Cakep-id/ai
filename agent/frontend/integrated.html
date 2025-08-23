@@ -1,0 +1,1822 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CAKEP.id EWS - Pipeline Inspection & Training</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 15px 0;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 20px;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            color: #2563eb;
+        }
+
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .main-tabs {
+            display: flex;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 6px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        
+        .main-tab-button {
+            flex: 1;
+            padding: 15px 25px;
+            border: none;
+            background: transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            color: #666;
+        }
+        
+        .main-tab-button.active {
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.3);
+        }
+        
+        .main-tab-button:hover:not(.active) {
+            background: #f8fafc;
+            color: #2563eb;
+        }
+        
+        .main-tab-content {
+            display: none;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        
+        .main-tab-content.active {
+            display: block;
+        }
+
+        /* Pipeline Styles */
+        .upload-section {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .upload-area {
+            border: 3px dashed #007bff;
+            border-radius: 10px;
+            padding: 50px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+        
+        .upload-area:hover {
+            border-color: #0056b3;
+            background-color: #f8f9fa;
+        }
+        
+        .upload-area.dragover {
+            border-color: #28a745;
+            background-color: #d4edda;
+        }
+
+        /* Training Styles */
+        .training-tabs {
+            display: flex;
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 4px;
+            margin-bottom: 25px;
+        }
+        
+        .tab-button {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            background: transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+            color: #64748b;
+        }
+        
+        .tab-button.active {
+            background: #2563eb;
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Form Styles */
+        .form-section {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        /* Button Styles */
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #28a745, #1e7e34);
+            color: white;
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg, #17a2b8, #117a8b);
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+        }
+
+        .btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #ffffff3d;
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 0.8s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Alert Styles */
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f1b0b7;
+        }
+
+        .alert-info {
+            background-color: #cce7ff;
+            color: #0056b3;
+            border: 1px solid #99d3ff;
+        }
+
+        /* Canvas and Upload Area */
+        #annotationCanvas {
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            cursor: crosshair;
+            max-width: 100%;
+        }
+
+        .file-upload-area {
+            border: 3px dashed #007bff;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+
+        .file-upload-area:hover {
+            border-color: #0056b3;
+            background-color: #f8f9fa;
+        }
+
+        .file-upload-area.dragover {
+            border-color: #28a745;
+            background-color: #d4edda;
+        }
+
+        /* Results Section */
+        .results-section {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            display: none;
+        }
+
+        .level-badge {
+            padding: 8px 16px;
+            border-radius: 20px;
+            color: white;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 12px;
+        }
+
+        .level-low { background: #28a745; }
+        .level-medium { background: #ffc107; color: #000; }
+        .level-high { background: #dc3545; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .main-tabs {
+                flex-direction: column;
+            }
+            
+            .training-tabs {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="header-content">
+            <div class="logo">
+                <i class="fas fa-shield-alt"></i> CAKEP.id EWS
+            </div>
+            <div class="header-nav">
+                <span>Pipeline Inspection & AI Training System</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Main Navigation Tabs -->
+        <div class="main-tabs">
+            <button class="main-tab-button active" onclick="switchMainTab('pipeline')">
+                <i class="fas fa-search"></i> Pipeline Inspection
+            </button>
+            <button class="main-tab-button" onclick="switchMainTab('history')">
+                <i class="fas fa-history"></i> Riwayat Inspeksi
+            </button>
+            <button class="main-tab-button" onclick="switchMainTab('training')">
+                <i class="fas fa-brain"></i> AI Training
+            </button>
+            <button class="main-tab-button" onclick="switchMainTab('scheduler')">
+                <i class="fas fa-calendar-alt"></i> Jadwal Pemeliharaan
+            </button>
+        </div>
+
+        <!-- Pipeline Tab Content -->
+        <div id="pipeline" class="main-tab-content active">
+            <div class="upload-section">
+                <h2><i class="fas fa-upload"></i> Upload Foto Pipeline</h2>
+                <form id="uploadForm" enctype="multipart/form-data">
+                    <div class="upload-area" id="uploadArea">
+                        <i class="fas fa-cloud-upload-alt" style="font-size: 48px; color: #007bff; margin-bottom: 15px;"></i>
+                        <h3>Drag & Drop atau Klik untuk Upload</h3>
+                        <p>Format yang didukung: JPG, PNG, JPEG (Max: 10MB)</p>
+                        <input type="file" id="imageUpload" name="image" accept="image/*" style="display: none;">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="pipelineId">Pipeline ID *</label>
+                        <input type="text" id="pipelineId" name="pipeline_id" required placeholder="Contoh: PIPE-001-2024">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="location">Lokasi Pipeline *</label>
+                        <input type="text" id="location" name="location" required placeholder="Contoh: Jakarta Utara - Kelapa Gading">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="inspectorName">Nama Inspector *</label>
+                        <input type="text" id="inspectorName" name="inspector_name" required placeholder="Nama lengkap inspector">
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary" id="analyzeBtn">
+                        <span class="btn-text"><i class="fas fa-search"></i> Analisis Foto</span>
+                        <span class="spinner" style="display: none;"></span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Results Section -->
+            <div class="results-section" id="resultsSection">
+                <h2><i class="fas fa-chart-bar"></i> Hasil Analisis</h2>
+                <div id="analysisResults"></div>
+                
+                <!-- Human Feedback Section -->
+                <div id="feedbackSection" style="display: none; margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 8px;">
+                    <h3><i class="fas fa-user-check"></i> Feedback Manusia untuk AI Training</h3>
+                    <p>Berikan feedback untuk membantu AI belajar dari pengalaman manusia:</p>
+                    
+                    <div class="form-group">
+                        <label for="humanAssessment">Penilaian Risiko Menurut Anda:</label>
+                        <select id="humanAssessment" name="human_assessment">
+                            <option value="">-- Pilih Tingkat Risiko --</option>
+                            <option value="LOW">LOW - Risiko Rendah</option>
+                            <option value="MEDIUM">MEDIUM - Risiko Sedang</option>
+                            <option value="HIGH">HIGH - Risiko Tinggi</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="feedbackNotes">Catatan Tambahan:</label>
+                        <textarea id="feedbackNotes" name="feedback_notes" rows="3" 
+                                placeholder="Jelaskan mengapa Anda memberikan penilaian ini (opsional)"></textarea>
+                    </div>
+                    
+                    <button type="button" onclick="submitHumanFeedback()" class="btn btn-success">
+                        <i class="fas fa-paper-plane"></i> Kirim Feedback untuk Training AI
+                    </button>
+                </div>
+
+                <!-- Maintenance Scheduler Section -->
+                <div id="schedulerSection" style="display: none; margin-top: 30px; padding: 20px; background: #e3f2fd; border-radius: 8px;">
+                    <h3><i class="fas fa-calendar-check"></i> Jadwal Pemeliharaan Recommended</h3>
+                    <div id="maintenanceSchedule"></div>
+                    
+                    <div class="form-group" style="margin-top: 15px;">
+                        <label for="maintenancePriority">Prioritas Pemeliharaan:</label>
+                        <select id="maintenancePriority" name="maintenance_priority">
+                            <option value="routine">Routine - Pemeliharaan Rutin</option>
+                            <option value="urgent">Urgent - Perlu Segera</option>
+                            <option value="critical">Critical - Emergency</option>
+                        </select>
+                    </div>
+                    
+                    <button type="button" onclick="scheduleMaintenanceTask()" class="btn btn-info">
+                        <i class="fas fa-calendar-plus"></i> Jadwalkan Pemeliharaan
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- History Tab Content -->
+        <div id="history" class="main-tab-content">
+            <h2><i class="fas fa-history"></i> Riwayat Inspeksi Pipeline</h2>
+            
+            <div class="form-section">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="filterDateStart">Dari Tanggal:</label>
+                        <input type="date" id="filterDateStart" name="filter_date_start">
+                    </div>
+                    <div class="form-group">
+                        <label for="filterDateEnd">Sampai Tanggal:</label>
+                        <input type="date" id="filterDateEnd" name="filter_date_end">
+                    </div>
+                </div>
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="filterPipelineId">Pipeline ID:</label>
+                        <input type="text" id="filterPipelineId" name="filter_pipeline_id" placeholder="Cari berdasarkan Pipeline ID">
+                    </div>
+                    <div class="form-group">
+                        <label for="filterRiskLevel">Risk Level:</label>
+                        <select id="filterRiskLevel" name="filter_risk_level">
+                            <option value="">-- Semua Level --</option>
+                            <option value="LOW">LOW</option>
+                            <option value="MEDIUM">MEDIUM</option>
+                            <option value="HIGH">HIGH</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <button type="button" onclick="loadInspectionHistory()" class="btn btn-primary">
+                    <i class="fas fa-search"></i> Filter Riwayat
+                </button>
+            </div>
+
+            <div class="form-section">
+                <h3><i class="fas fa-list"></i> Hasil Inspeksi</h3>
+                <div id="inspectionHistoryList">
+                    <p>Loading inspection history...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scheduler Tab Content -->
+        <div id="scheduler" class="main-tab-content">
+            <h2><i class="fas fa-calendar-alt"></i> Jadwal Pemeliharaan Pipeline</h2>
+            
+            <div class="form-section">
+                <h3><i class="fas fa-calendar-check"></i> Jadwal Pemeliharaan Aktif</h3>
+                <div id="activeMaintenanceList">
+                    <p>Loading maintenance schedule...</p>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3><i class="fas fa-plus-circle"></i> Buat Jadwal Pemeliharaan Manual</h3>
+                <form id="createMaintenanceForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="schedulePipelineId">Pipeline ID *</label>
+                            <input type="text" id="schedulePipelineId" name="pipeline_id" required 
+                                   placeholder="ID Pipeline yang akan dipelihara">
+                        </div>
+                        <div class="form-group">
+                            <label for="scheduleDate">Tanggal Pemeliharaan *</label>
+                            <input type="datetime-local" id="scheduleDate" name="maintenance_date" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="scheduleType">Tipe Pemeliharaan *</label>
+                            <select id="scheduleType" name="maintenance_type" required>
+                                <option value="">-- Pilih Tipe --</option>
+                                <option value="routine">Routine Inspection</option>
+                                <option value="repair">Repair Work</option>
+                                <option value="replacement">Component Replacement</option>
+                                <option value="emergency">Emergency Response</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="schedulePriority">Prioritas *</label>
+                            <select id="schedulePriority" name="priority" required>
+                                <option value="routine">Routine</option>
+                                <option value="urgent">Urgent</option>
+                                <option value="critical">Critical</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="scheduleDescription">Deskripsi Pekerjaan</label>
+                        <textarea id="scheduleDescription" name="description" rows="3" 
+                                placeholder="Deskripsi detail pekerjaan pemeliharaan..."></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="assignedTo">Assigned To</label>
+                        <input type="text" id="assignedTo" name="assigned_to" 
+                               placeholder="Nama teknisi yang bertanggung jawab">
+                    </div>
+                    
+                    <button type="submit" class="btn btn-success">
+                        <span class="btn-text"><i class="fas fa-calendar-plus"></i> Buat Jadwal</span>
+                        <span class="spinner" style="display: none;"></span>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Training Tab Content -->
+        <div id="training" class="main-tab-content">
+            <h2><i class="fas fa-brain"></i> AI Training Management</h2>
+            
+            <!-- Training Sub-tabs -->
+            <div class="training-tabs">
+                <button class="tab-button active" onclick="switchTab('manage-datasets')">
+                    <i class="fas fa-database"></i> Kelola Dataset
+                </button>
+                <button class="tab-button" onclick="switchTab('upload-images')">
+                    <i class="fas fa-images"></i> Upload Gambar
+                </button>
+                <button class="tab-button" onclick="switchTab('feedback-learning')">
+                    <i class="fas fa-user-graduate"></i> Feedback Learning
+                </button>
+                <button class="tab-button" onclick="switchTab('start-training')">
+                    <i class="fas fa-play"></i> Mulai Training
+                </button>
+            </div>
+
+            <!-- Dataset Management Tab -->
+            <div id="manage-datasets" class="tab-content active">
+                <div class="form-section">
+                    <h3><i class="fas fa-plus-circle"></i> Buat Dataset Baru</h3>
+                    <form id="createDatasetForm">
+                        <div class="form-group">
+                            <label for="datasetName">Nama Dataset *</label>
+                            <input type="text" id="datasetName" name="dataset_name" required 
+                                   placeholder="Contoh: Pipeline Damage Detection v1.0">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="description">Deskripsi</label>
+                            <textarea id="description" name="description" rows="3" 
+                                    placeholder="Deskripsi singkat tentang dataset ini..."></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="damageTypes">Tipe Kerusakan</label>
+                            <div id="damageTypes">
+                                <label><input type="checkbox" value="1" checked> Crack - Retakan</label><br>
+                                <label><input type="checkbox" value="2" checked> Corrosion - Korosi</label><br>
+                                <label><input type="checkbox" value="3" checked> Dent - Penyok</label><br>
+                                <label><input type="checkbox" value="4" checked> Leak - Kebocoran</label><br>
+                                <label><input type="checkbox" value="5" checked> Coating Damage - Kerusakan Lapisan</label>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-success">
+                            <span class="btn-text"><i class="fas fa-save"></i> Buat Dataset</span>
+                            <span class="spinner" style="display: none;"></span>
+                        </button>
+                    </form>
+                </div>
+
+                <div class="form-section">
+                    <h3><i class="fas fa-list"></i> Dataset yang Tersedia</h3>
+                    <div id="datasetsList">
+                        <p>Loading datasets...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Feedback Learning Tab -->
+            <div id="feedback-learning" class="tab-content">
+                <div class="form-section">
+                    <h3><i class="fas fa-user-graduate"></i> AI Learning dari Human Feedback</h3>
+                    <p>Sistem ini memungkinkan AI untuk belajar dari penilaian manusia terhadap hasil analisis.</p>
+                    
+                    <div id="feedbackLearningList">
+                        <h4>Data Feedback untuk Review:</h4>
+                        <div id="pendingFeedbackList">
+                            <p>Loading pending feedback data...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h3><i class="fas fa-chart-line"></i> Learning Progress</h3>
+                    <div id="learningProgress">
+                        <div class="progress-item">
+                            <label>Total Feedback Received:</label>
+                            <span id="totalFeedbackCount">-</span>
+                        </div>
+                        <div class="progress-item">
+                            <label>AI Accuracy Improvement:</label>
+                            <span id="accuracyImprovement">-</span>
+                        </div>
+                        <div class="progress-item">
+                            <label>Last Training Update:</label>
+                            <span id="lastTrainingUpdate">-</span>
+                        </div>
+                    </div>
+                    
+                    <button type="button" onclick="triggerFeedbackLearning()" class="btn btn-info">
+                        <i class="fas fa-brain"></i> Trigger AI Learning Update
+                    </button>
+                </div>
+            </div>
+
+            <!-- Upload Images Tab -->
+            <div id="upload-images" class="tab-content">
+                <div class="form-section">
+                    <h3><i class="fas fa-upload"></i> Upload Gambar Training</h3>
+                    <form id="uploadImageForm">
+                        <div class="form-group">
+                            <label for="selectDataset">Pilih Dataset *</label>
+                            <select id="selectDataset" name="dataset_id" required>
+                                <option value="">-- Pilih Dataset --</option>
+                            </select>
+                        </div>
+                        
+                        <div class="file-upload-area" id="fileUploadArea">
+                            <i class="fas fa-images" style="font-size: 48px; color: #007bff; margin-bottom: 15px;"></i>
+                            <h3>Upload Gambar untuk Training</h3>
+                            <p>Drag & Drop atau klik untuk memilih gambar</p>
+                            <input type="file" id="imageFile" name="image" accept="image/*" style="display: none;">
+                        </div>
+                        
+                        <div id="imagePreview" style="display: none;">
+                            <h4>Preview & Annotation</h4>
+                            <canvas id="annotationCanvas" width="500" height="400"></canvas>
+                            <div style="margin-top: 10px;">
+                                <label for="damageClass">Tipe Kerusakan:</label>
+                                <select id="damageClass" name="damage_class">
+                                    <option value="1">Crack - Retakan</option>
+                                    <option value="2">Corrosion - Korosi</option>
+                                    <option value="3">Dent - Penyok</option>
+                                    <option value="4">Leak - Kebocoran</option>
+                                    <option value="5">Coating Damage - Kerusakan Lapisan</option>
+                                </select>
+                                <button type="button" onclick="clearAnnotations()" class="btn" style="background: #dc3545; color: white; margin-left: 10px;">
+                                    <i class="fas fa-trash"></i> Clear
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-info" style="margin-top: 20px;">
+                            <span class="btn-text"><i class="fas fa-save"></i> Simpan Gambar</span>
+                            <span class="spinner" style="display: none;"></span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Training Tab -->
+            <div id="start-training" class="tab-content">
+                <div class="form-section">
+                    <h3><i class="fas fa-play-circle"></i> Mulai Training AI</h3>
+                    <form id="startTrainingForm">
+                        <div class="form-group">
+                            <label for="trainingDataset">Dataset untuk Training *</label>
+                            <select id="trainingDataset" name="dataset_id" required>
+                                <option value="">-- Pilih Dataset --</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="epochs">Epochs</label>
+                                <input type="number" id="epochs" name="epochs" value="50" min="1" max="500">
+                            </div>
+                            <div class="form-group">
+                                <label for="batchSize">Batch Size</label>
+                                <input type="number" id="batchSize" name="batch_size" value="16" min="1" max="64">
+                            </div>
+                        </div>
+                        
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="learningRate">Learning Rate</label>
+                                <input type="number" id="learningRate" name="learning_rate" value="0.001" step="0.0001" min="0.0001" max="0.1">
+                            </div>
+                            <div class="form-group">
+                                <label for="modelArchitecture">Model Architecture</label>
+                                <select id="modelArchitecture" name="model_architecture">
+                                    <option value="yolov8n">YOLOv8 Nano (Fast)</option>
+                                    <option value="yolov8s">YOLOv8 Small</option>
+                                    <option value="yolov8m">YOLOv8 Medium</option>
+                                    <option value="yolov8l">YOLOv8 Large</option>
+                                    <option value="yolov8x">YOLOv8 XLarge (Best)</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="startedBy">Training Engineer *</label>
+                            <input type="text" id="startedBy" name="started_by" required 
+                                   placeholder="Nama engineer yang memulai training">
+                        </div>
+                        
+                        <button type="submit" class="btn btn-success">
+                            <span class="btn-text"><i class="fas fa-rocket"></i> Mulai Training</span>
+                            <span class="spinner" style="display: none;"></span>
+                        </button>
+                    </form>
+                </div>
+
+                <div class="form-section">
+                    <h3><i class="fas fa-history"></i> Riwayat Training Sessions</h3>
+                    <div id="trainingSessionsList">
+                        <p>Loading training sessions...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alert Container -->
+    <div id="alertContainer" style="position: fixed; top: 20px; right: 20px; z-index: 9999;"></div>
+
+    <script>
+        // API Base URL
+        const API_BASE = 'http://localhost:8000';
+
+        // Global variables
+        let currentDatasets = [];
+        let damageClasses = [];
+        let annotations = [];
+        let isDrawing = false;
+        let startX, startY;
+        let currentImage = null;
+        let currentInspectionId = null;
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeEventListeners();
+            loadDamageClasses();
+            loadDatasets();
+            loadDatasetList();
+            loadTrainingSessions();
+        });
+
+        // Main tab switching
+        function switchMainTab(tabName) {
+            // Hide all main tab contents
+            document.querySelectorAll('.main-tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remove active class from all main tab buttons
+            document.querySelectorAll('.main-tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to clicked button
+            event.target.classList.add('active');
+
+            // Load data based on tab
+            switch(tabName) {
+                case 'training':
+                    loadDatasets();
+                    loadDatasetList();
+                    loadTrainingSessions();
+                    break;
+                case 'history':
+                    loadInspectionHistory();
+                    break;
+                case 'scheduler':
+                    loadMaintenanceSchedule();
+                    break;
+            }
+        }
+
+        // Training sub-tab switching
+        function switchTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remove active class from all buttons
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to clicked button
+            event.target.classList.add('active');
+            
+            // Load data based on tab
+            switch(tabName) {
+                case 'upload-images':
+                    loadDatasets();
+                    break;
+                case 'manage-datasets':
+                    loadDatasetList();
+                    break;
+                case 'feedback-learning':
+                    loadPendingFeedback();
+                    loadLearningProgress();
+                    break;
+                case 'start-training':
+                    loadDatasets();
+                    loadTrainingSessions();
+                    break;
+            }
+        }
+
+        function initializeEventListeners() {
+            // Pipeline upload form
+            document.getElementById('uploadForm').addEventListener('submit', handlePipelineAnalysis);
+            
+            // Pipeline file upload
+            const uploadArea = document.getElementById('uploadArea');
+            const imageUpload = document.getElementById('imageUpload');
+            
+            uploadArea.addEventListener('click', () => imageUpload.click());
+            uploadArea.addEventListener('dragover', handleDragOver);
+            uploadArea.addEventListener('drop', handleDrop);
+            imageUpload.addEventListener('change', handleFileSelect);
+
+            // Training forms
+            document.getElementById('createDatasetForm').addEventListener('submit', handleCreateDataset);
+            document.getElementById('uploadImageForm').addEventListener('submit', handleUploadImage);
+            document.getElementById('startTrainingForm').addEventListener('submit', handleStartTraining);
+            
+            // Scheduler form
+            document.getElementById('createMaintenanceForm').addEventListener('submit', handleCreateMaintenance);
+            
+            // Training file upload area
+            const fileUploadArea = document.getElementById('fileUploadArea');
+            const imageFile = document.getElementById('imageFile');
+            
+            fileUploadArea.addEventListener('click', () => imageFile.click());
+            fileUploadArea.addEventListener('dragover', handleDragOver);
+            fileUploadArea.addEventListener('drop', handleTrainingDrop);
+            imageFile.addEventListener('change', handleTrainingFileSelect);
+            
+            // Canvas for annotations
+            const canvas = document.getElementById('annotationCanvas');
+            canvas.addEventListener('mousedown', startDrawing);
+            canvas.addEventListener('mousemove', drawRectangle);
+            canvas.addEventListener('mouseup', stopDrawing);
+        }
+
+        // Pipeline Analysis Functions
+        async function handlePipelineAnalysis(event) {
+            event.preventDefault();
+            
+            const form = event.target;
+            const submitBtn = document.getElementById('analyzeBtn');
+            const btnText = submitBtn.querySelector('.btn-text');
+            const spinner = submitBtn.querySelector('.spinner');
+            
+            // Show loading
+            submitBtn.disabled = true;
+            btnText.style.display = 'none';
+            spinner.style.display = 'inline-block';
+            
+            try {
+                const formData = new FormData(form);
+                
+                const response = await fetch(`${API_BASE}/api/pipeline/analyze`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    displayPipelineResults(result);
+                    showAlert('Analisis berhasil!', 'success');
+                } else {
+                    showAlert(result.detail || 'Terjadi kesalahan', 'danger');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('Terjadi kesalahan: ' + error.message, 'danger');
+            } finally {
+                // Hide loading
+                submitBtn.disabled = false;
+                btnText.style.display = 'inline-block';
+                spinner.style.display = 'none';
+            }
+        }
+
+        function displayPipelineResults(result) {
+            const resultsSection = document.getElementById('resultsSection');
+            const analysisResults = document.getElementById('analysisResults');
+            
+            // Store current inspection ID for feedback
+            currentInspectionId = result.inspection_id || Date.now();
+            
+            let resultsHTML = `
+                <div class="result-header">
+                    <h3>Pipeline ID: ${result.pipeline_id}</h3>
+                    <p><strong>Lokasi:</strong> ${result.location}</p>
+                    <p><strong>Inspector:</strong> ${result.inspector_name}</p>
+                    <p><strong>Waktu Analisis:</strong> ${new Date().toLocaleString('id-ID')}</p>
+                </div>
+                
+                <div class="risk-summary">
+                    <h4>AI Risk Assessment: <span class="level-badge level-${result.risk_analysis.overall_risk.toLowerCase()}">${result.risk_analysis.overall_risk}</span></h4>
+                    <p><strong>Risk Score:</strong> ${result.risk_analysis.risk_score.toFixed(3)}</p>
+                    <p><strong>Confidence Level:</strong> ${(result.risk_analysis.confidence * 100).toFixed(1)}%</p>
+                </div>
+            `;
+
+            if (result.yolo_detection && result.yolo_detection.length > 0) {
+                resultsHTML += '<div class="detections"><h4>Deteksi Kerusakan:</h4>';
+                result.yolo_detection.forEach((detection, index) => {
+                    resultsHTML += `
+                        <div class="detection-item">
+                            <p><strong>Deteksi ${index + 1}:</strong> ${detection.class_name}</p>
+                            <p><strong>Confidence:</strong> ${(detection.confidence * 100).toFixed(1)}%</p>
+                            <p><strong>Lokasi:</strong> x=${detection.bbox[0]}, y=${detection.bbox[1]}, w=${detection.bbox[2]}, h=${detection.bbox[3]}</p>
+                        </div>
+                    `;
+                });
+                resultsHTML += '</div>';
+            }
+
+            analysisResults.innerHTML = resultsHTML;
+            
+            // Show feedback section
+            document.getElementById('feedbackSection').style.display = 'block';
+            
+            // Show and populate scheduler section
+            const schedulerSection = document.getElementById('schedulerSection');
+            const maintenanceSchedule = document.getElementById('maintenanceSchedule');
+            
+            // Generate maintenance recommendations based on risk level
+            const recommendations = generateMaintenanceRecommendations(result);
+            maintenanceSchedule.innerHTML = recommendations;
+            schedulerSection.style.display = 'block';
+            
+            resultsSection.style.display = 'block';
+        }
+
+        function generateMaintenanceRecommendations(result) {
+            const riskLevel = result.risk_analysis.overall_risk;
+            const today = new Date();
+            let recommendations = '';
+            
+            switch(riskLevel) {
+                case 'HIGH':
+                    const urgentDate = new Date(today.getTime() + 24 * 60 * 60 * 1000); // Tomorrow
+                    recommendations = `
+                        <div class="alert alert-danger">
+                            <h4><i class="fas fa-exclamation-triangle"></i> Pemeliharaan Darurat Diperlukan</h4>
+                            <p><strong>Rekomendasi:</strong> Segera lakukan inspeksi dan perbaikan</p>
+                            <p><strong>Target Date:</strong> ${urgentDate.toLocaleDateString('id-ID')}</p>
+                            <p><strong>Prioritas:</strong> CRITICAL</p>
+                        </div>
+                    `;
+                    break;
+                case 'MEDIUM':
+                    const routineDate = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000); // Next week
+                    recommendations = `
+                        <div class="alert alert-info">
+                            <h4><i class="fas fa-calendar-check"></i> Pemeliharaan Terjadwal</h4>
+                            <p><strong>Rekomendasi:</strong> Jadwalkan pemeliharaan preventif</p>
+                            <p><strong>Target Date:</strong> ${routineDate.toLocaleDateString('id-ID')}</p>
+                            <p><strong>Prioritas:</strong> URGENT</p>
+                        </div>
+                    `;
+                    break;
+                case 'LOW':
+                    const preventiveDate = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000); // Next month
+                    recommendations = `
+                        <div class="alert alert-success">
+                            <h4><i class="fas fa-check-circle"></i> Pemeliharaan Rutin</h4>
+                            <p><strong>Rekomendasi:</strong> Lanjutkan pemeliharaan rutin</p>
+                            <p><strong>Target Date:</strong> ${preventiveDate.toLocaleDateString('id-ID')}</p>
+                            <p><strong>Prioritas:</strong> ROUTINE</p>
+                        </div>
+                    `;
+                    break;
+            }
+            
+            return recommendations;
+        }
+
+        // Training Functions
+        async function handleCreateDataset(event) {
+            event.preventDefault();
+            
+            const form = event.target;
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const btnText = submitBtn.querySelector('.btn-text');
+            const spinner = submitBtn.querySelector('.spinner');
+            
+            // Show loading
+            submitBtn.disabled = true;
+            btnText.style.display = 'none';
+            spinner.style.display = 'inline-block';
+            
+            try {
+                const formData = new FormData(form);
+                const damageTypes = Array.from(document.querySelectorAll('#damageTypes input[type="checkbox"]:checked'))
+                    .map(cb => parseInt(cb.value));
+                
+                const data = {
+                    dataset_name: formData.get('dataset_name'),
+                    description: formData.get('description'),
+                    damage_class_ids: damageTypes
+                };
+                
+                const response = await fetch(`${API_BASE}/api/training/datasets`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showAlert('Dataset berhasil dibuat!', 'success');
+                    form.reset();
+                    loadDatasetList();
+                    loadDatasets();
+                } else {
+                    showAlert(result.detail || 'Terjadi kesalahan', 'danger');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('Terjadi kesalahan: ' + error.message, 'danger');
+            } finally {
+                // Hide loading
+                submitBtn.disabled = false;
+                btnText.style.display = 'inline-block';
+                spinner.style.display = 'none';
+            }
+        }
+
+        async function handleUploadImage(event) {
+            event.preventDefault();
+            
+            const form = event.target;
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const btnText = submitBtn.querySelector('.btn-text');
+            const spinner = submitBtn.querySelector('.spinner');
+            
+            // Show loading
+            submitBtn.disabled = true;
+            btnText.style.display = 'none';
+            spinner.style.display = 'inline-block';
+            
+            try {
+                const formData = new FormData(form);
+                
+                // Add annotations
+                if (annotations.length > 0) {
+                    formData.append('annotations', JSON.stringify(annotations));
+                }
+                
+                const datasetId = formData.get('dataset_id');
+                const response = await fetch(`${API_BASE}/api/training/datasets/${datasetId}/images`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showAlert('Gambar berhasil diupload!', 'success');
+                    form.reset();
+                    clearAnnotations();
+                    document.getElementById('imagePreview').style.display = 'none';
+                } else {
+                    showAlert(result.detail || 'Terjadi kesalahan', 'danger');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('Terjadi kesalahan: ' + error.message, 'danger');
+            } finally {
+                // Hide loading
+                submitBtn.disabled = false;
+                btnText.style.display = 'inline-block';
+                spinner.style.display = 'none';
+            }
+        }
+
+        async function handleStartTraining(event) {
+            event.preventDefault();
+            
+            const form = event.target;
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const btnText = submitBtn.querySelector('.btn-text');
+            const spinner = submitBtn.querySelector('.spinner');
+            
+            // Show loading
+            submitBtn.disabled = true;
+            btnText.style.display = 'none';
+            spinner.style.display = 'inline-block';
+            
+            try {
+                const formData = new FormData(form);
+                const data = {
+                    dataset_id: parseInt(formData.get('dataset_id')),
+                    epochs: parseInt(formData.get('epochs')),
+                    batch_size: parseInt(formData.get('batch_size')),
+                    learning_rate: parseFloat(formData.get('learning_rate')),
+                    model_architecture: formData.get('model_architecture'),
+                    started_by: formData.get('started_by')
+                };
+                
+                const response = await fetch(`${API_BASE}/api/training/start`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showAlert('Training berhasil dimulai!', 'success');
+                    form.reset();
+                    loadTrainingSessions();
+                } else {
+                    showAlert(result.detail || 'Terjadi kesalahan', 'danger');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert('Terjadi kesalahan: ' + error.message, 'danger');
+            } finally {
+                // Hide loading
+                submitBtn.disabled = false;
+                btnText.style.display = 'inline-block';
+                spinner.style.display = 'none';
+            }
+        }
+
+        // File handling functions
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.target.classList.add('dragover');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            e.target.classList.remove('dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                document.getElementById('imageUpload').files = files;
+                handleFileSelect({ target: { files: files } });
+            }
+        }
+
+        function handleTrainingDrop(e) {
+            e.preventDefault();
+            e.target.classList.remove('dragover');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                document.getElementById('imageFile').files = files;
+                handleTrainingFileSelect({ target: { files: files } });
+            }
+        }
+
+        function handleFileSelect(e) {
+            const files = e.target.files;
+            if (files.length > 0) {
+                const file = files[0];
+                if (file.type.startsWith('image/')) {
+                    showAlert('File berhasil dipilih: ' + file.name, 'info');
+                } else {
+                    showAlert('File harus berupa gambar!', 'danger');
+                    e.target.value = '';
+                }
+            }
+        }
+
+        function handleTrainingFileSelect(e) {
+            const files = e.target.files;
+            if (files.length > 0) {
+                const file = files[0];
+                if (file.type.startsWith('image/')) {
+                    displayImageForAnnotation(file);
+                } else {
+                    showAlert('File harus berupa gambar!', 'danger');
+                    e.target.value = '';
+                }
+            }
+        }
+
+        function displayImageForAnnotation(file) {
+            const canvas = document.getElementById('annotationCanvas');
+            const ctx = canvas.getContext('2d');
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    // Calculate canvas size maintaining aspect ratio
+                    const maxWidth = 500;
+                    const maxHeight = 400;
+                    let { width, height } = img;
+                    
+                    if (width > maxWidth) {
+                        height = (height * maxWidth) / width;
+                        width = maxWidth;
+                    }
+                    
+                    if (height > maxHeight) {
+                        width = (width * maxHeight) / height;
+                        height = maxHeight;
+                    }
+                    
+                    canvas.width = width;
+                    canvas.height = height;
+                    
+                    ctx.drawImage(img, 0, 0, width, height);
+                    currentImage = img;
+                    document.getElementById('imagePreview').style.display = 'block';
+                };
+                img.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Canvas annotation functions
+        function startDrawing(e) {
+            if (!currentImage) return;
+            
+            isDrawing = true;
+            const rect = e.target.getBoundingClientRect();
+            startX = e.clientX - rect.left;
+            startY = e.clientY - rect.top;
+        }
+
+        function drawRectangle(e) {
+            if (!isDrawing || !currentImage) return;
+            
+            const canvas = document.getElementById('annotationCanvas');
+            const ctx = canvas.getContext('2d');
+            const rect = e.target.getBoundingClientRect();
+            const currentX = e.clientX - rect.left;
+            const currentY = e.clientY - rect.top;
+            
+            // Redraw image
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(currentImage, 0, 0, canvas.width, canvas.height);
+            
+            // Draw existing annotations
+            drawAnnotations(ctx);
+            
+            // Draw current rectangle
+            ctx.strokeStyle = '#ff0000';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(startX, startY, currentX - startX, currentY - startY);
+        }
+
+        function stopDrawing(e) {
+            if (!isDrawing || !currentImage) return;
+            
+            isDrawing = false;
+            const rect = e.target.getBoundingClientRect();
+            const endX = e.clientX - rect.left;
+            const endY = e.clientY - rect.top;
+            
+            // Add annotation
+            const damageClass = document.getElementById('damageClass').value;
+            annotations.push({
+                x: Math.min(startX, endX),
+                y: Math.min(startY, endY),
+                width: Math.abs(endX - startX),
+                height: Math.abs(endY - startY),
+                damage_class_id: parseInt(damageClass)
+            });
+            
+            // Redraw with all annotations
+            const canvas = document.getElementById('annotationCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(currentImage, 0, 0, canvas.width, canvas.height);
+            drawAnnotations(ctx);
+        }
+
+        function drawAnnotations(ctx) {
+            annotations.forEach((annotation, index) => {
+                ctx.strokeStyle = '#00ff00';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(annotation.x, annotation.y, annotation.width, annotation.height);
+                
+                // Draw label
+                ctx.fillStyle = '#00ff00';
+                ctx.font = '12px Arial';
+                ctx.fillText(`${index + 1}`, annotation.x, annotation.y - 5);
+            });
+        }
+
+        function clearAnnotations() {
+            annotations = [];
+            if (currentImage) {
+                const canvas = document.getElementById('annotationCanvas');
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(currentImage, 0, 0, canvas.width, canvas.height);
+            }
+        }
+
+        // Data loading functions
+        async function loadDamageClasses() {
+            try {
+                const response = await fetch(`${API_BASE}/api/training/damage-classes`);
+                if (response.ok) {
+                    damageClasses = await response.json();
+                }
+            } catch (error) {
+                console.error('Error loading damage classes:', error);
+            }
+        }
+
+        async function loadDatasets() {
+            try {
+                const response = await fetch(`${API_BASE}/api/training/datasets`);
+                if (response.ok) {
+                    currentDatasets = await response.json();
+                    updateDatasetSelects();
+                }
+            } catch (error) {
+                console.error('Error loading datasets:', error);
+            }
+        }
+
+        function updateDatasetSelects() {
+            const selects = ['selectDataset', 'trainingDataset'];
+            selects.forEach(selectId => {
+                const select = document.getElementById(selectId);
+                if (select) {
+                    select.innerHTML = '<option value="">-- Pilih Dataset --</option>';
+                    currentDatasets.forEach(dataset => {
+                        select.innerHTML += `<option value="${dataset.id}">${dataset.dataset_name}</option>`;
+                    });
+                }
+            });
+        }
+
+        async function loadDatasetList() {
+            try {
+                const response = await fetch(`${API_BASE}/api/training/datasets`);
+                if (response.ok) {
+                    const datasets = await response.json();
+                    displayDatasetList(datasets);
+                }
+            } catch (error) {
+                console.error('Error loading dataset list:', error);
+                document.getElementById('datasetsList').innerHTML = '<p>Error loading datasets</p>';
+            }
+        }
+
+        function displayDatasetList(datasets) {
+            const container = document.getElementById('datasetsList');
+            
+            if (datasets.length === 0) {
+                container.innerHTML = '<p>Belum ada dataset. Buat dataset baru untuk memulai.</p>';
+                return;
+            }
+            
+            let html = '';
+            datasets.forEach(dataset => {
+                html += `
+                    <div class="dataset-item" style="border: 1px solid #ddd; padding: 15px; margin-bottom: 10px; border-radius: 5px;">
+                        <h4>${dataset.dataset_name}</h4>
+                        <p><strong>Deskripsi:</strong> ${dataset.description || 'Tidak ada deskripsi'}</p>
+                        <p><strong>Dibuat:</strong> ${new Date(dataset.created_at).toLocaleString('id-ID')}</p>
+                        <p><strong>Total Gambar:</strong> ${dataset.image_count || 0}</p>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        async function loadTrainingSessions() {
+            try {
+                const response = await fetch(`${API_BASE}/api/training/sessions`);
+                if (response.ok) {
+                    const sessions = await response.json();
+                    displayTrainingSessions(sessions);
+                } else {
+                    // If endpoint doesn't exist, show placeholder
+                    document.getElementById('trainingSessionsList').innerHTML = '<p>Belum ada training session.</p>';
+                }
+            } catch (error) {
+                console.error('Error loading training sessions:', error);
+                document.getElementById('trainingSessionsList').innerHTML = '<p>Belum ada training session.</p>';
+            }
+        }
+
+        function displayTrainingSessions(sessions) {
+            const container = document.getElementById('trainingSessionsList');
+            
+            if (sessions.length === 0) {
+                container.innerHTML = '<p>Belum ada training session.</p>';
+                return;
+            }
+            
+            let html = '';
+            sessions.forEach(session => {
+                const statusBadge = session.status === 'completed' ? 'success' : 
+                                  session.status === 'running' ? 'info' : 'secondary';
+                
+                html += `
+                    <div class="session-item" style="border: 1px solid #ddd; padding: 15px; margin-bottom: 10px; border-radius: 5px;">
+                        <h4>Training Session #${session.id}</h4>
+                        <p><strong>Dataset:</strong> ${session.dataset_name}</p>
+                        <p><strong>Status:</strong> <span class="badge bg-${statusBadge}">${session.status}</span></p>
+                        <p><strong>Started by:</strong> ${session.started_by}</p>
+                        <p><strong>Started:</strong> ${new Date(session.created_at).toLocaleString('id-ID')}</p>
+                        ${session.completed_at ? `<p><strong>Completed:</strong> ${new Date(session.completed_at).toLocaleString('id-ID')}</p>` : ''}
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        // Utility functions
+        function showAlert(message, type) {
+            const alertContainer = document.getElementById('alertContainer');
+            const alertId = 'alert-' + Date.now();
+            
+            const alertHTML = `
+                <div id="${alertId}" class="alert alert-${type}" style="margin-bottom: 10px;">
+                    ${message}
+                </div>
+            `;
+            
+            alertContainer.insertAdjacentHTML('beforeend', alertHTML);
+            
+            // Auto remove after 5 seconds
+            setTimeout(() => {
+                const alert = document.getElementById(alertId);
+                if (alert) {
+                    alert.remove();
+                }
+            }, 5000);
+        }
+
+        // Human Feedback Functions
+        async function submitHumanFeedback() {
+            const humanAssessment = document.getElementById('humanAssessment').value;
+            const feedbackNotes = document.getElementById('feedbackNotes').value;
+            
+            if (!humanAssessment) {
+                showAlert('Pilih penilaian risiko terlebih dahulu!', 'danger');
+                return;
+            }
+            
+            try {
+                const feedbackData = {
+                    inspection_id: currentInspectionId,
+                    human_assessment: humanAssessment,
+                    feedback_notes: feedbackNotes,
+                    feedback_date: new Date().toISOString()
+                };
+                
+                const response = await fetch(`${API_BASE}/api/training/feedback`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(feedbackData)
+                });
+                
+                if (response.ok) {
+                    showAlert('Feedback berhasil dikirim untuk AI training!', 'success');
+                    document.getElementById('humanAssessment').value = '';
+                    document.getElementById('feedbackNotes').value = '';
+                    document.getElementById('feedbackSection').style.display = 'none';
+                } else {
+                    showAlert('Gagal mengirim feedback', 'danger');
+                }
+            } catch (error) {
+                console.error('Error submitting feedback:', error);
+                showAlert('Terjadi kesalahan: ' + error.message, 'danger');
+            }
+        }
+
+        // Maintenance Scheduler Functions
+        async function scheduleMaintenanceTask() {
+            const priority = document.getElementById('maintenancePriority').value;
+            
+            if (!currentInspectionId) {
+                showAlert('Tidak ada data inspeksi untuk dijadwalkan!', 'danger');
+                return;
+            }
+            
+            try {
+                const scheduleData = {
+                    inspection_id: currentInspectionId,
+                    priority: priority,
+                    auto_generated: true,
+                    created_date: new Date().toISOString()
+                };
+                
+                const response = await fetch(`${API_BASE}/api/scheduler/auto-schedule`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(scheduleData)
+                });
+                
+                if (response.ok) {
+                    showAlert('Jadwal pemeliharaan berhasil dibuat!', 'success');
+                    document.getElementById('schedulerSection').style.display = 'none';
+                } else {
+                    showAlert('Gagal membuat jadwal pemeliharaan', 'danger');
+                }
+            } catch (error) {
+                console.error('Error scheduling maintenance:', error);
+                showAlert('Terjadi kesalahan: ' + error.message, 'danger');
+            }
+        }
+
+        async function handleCreateMaintenance(event) {
+            event.preventDefault();
+            
+            const form = event.target;
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const btnText = submitBtn.querySelector('.btn-text');
+            const spinner = submitBtn.querySelector('.spinner');
+            
+            submitBtn.disabled = true;
+            btnText.style.display = 'none';
+            spinner.style.display = 'inline-block';
+            
+            try {
+                const formData = new FormData(form);
+                const data = {
+                    pipeline_id: formData.get('pipeline_id'),
+                    maintenance_date: formData.get('maintenance_date'),
+                    maintenance_type: formData.get('maintenance_type'),
+                    priority: formData.get('priority'),
+                    description: formData.get('description'),
+                    assigned_to: formData.get('assigned_to')
+                };
+                
+                const response = await fetch(`${API_BASE}/api/scheduler/maintenance`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                if (response.ok) {
+                    showAlert('Jadwal pemeliharaan berhasil dibuat!', 'success');
+                    form.reset();
+                    loadMaintenanceSchedule();
+                } else {
+                    showAlert('Gagal membuat jadwal pemeliharaan', 'danger');
+                }
+            } catch (error) {
+                console.error('Error creating maintenance:', error);
+                showAlert('Terjadi kesalahan: ' + error.message, 'danger');
+            } finally {
+                submitBtn.disabled = false;
+                btnText.style.display = 'inline-block';
+                spinner.style.display = 'none';
+            }
+        }
+
+        // Inspection History Functions
+        async function loadInspectionHistory() {
+            try {
+                const params = new URLSearchParams();
+                const startDate = document.getElementById('filterDateStart').value;
+                const endDate = document.getElementById('filterDateEnd').value;
+                const pipelineId = document.getElementById('filterPipelineId').value;
+                const riskLevel = document.getElementById('filterRiskLevel').value;
+                
+                if (startDate) params.append('start_date', startDate);
+                if (endDate) params.append('end_date', endDate);
+                if (pipelineId) params.append('pipeline_id', pipelineId);
+                if (riskLevel) params.append('risk_level', riskLevel);
+                
+                const response = await fetch(`${API_BASE}/api/pipeline/history?${params}`);
+                if (response.ok) {
+                    const history = await response.json();
+                    displayInspectionHistory(history);
+                } else {
+                    document.getElementById('inspectionHistoryList').innerHTML = '<p>Gagal memuat riwayat inspeksi</p>';
+                }
+            } catch (error) {
+                console.error('Error loading inspection history:', error);
+                document.getElementById('inspectionHistoryList').innerHTML = '<p>Error loading inspection history</p>';
+            }
+        }
+
+        function displayInspectionHistory(history) {
+            const container = document.getElementById('inspectionHistoryList');
+            
+            if (history.length === 0) {
+                container.innerHTML = '<p>Tidak ada riwayat inspeksi yang sesuai filter.</p>';
+                return;
+            }
+            
+            let html = '';
+            history.forEach(item => {
+                const riskBadge = `level-${item.risk_level.toLowerCase()}`;
+                html += `
+                    <div class="history-item" style="border: 1px solid #ddd; padding: 15px; margin-bottom: 10px; border-radius: 5px;">
+                        <div style="display: flex; justify-content: between; align-items: center;">
+                            <h4>${item.pipeline_id}</h4>
+                            <span class="level-badge ${riskBadge}">${item.risk_level}</span>
+                        </div>
+                        <p><strong>Lokasi:</strong> ${item.location}</p>
+                        <p><strong>Inspector:</strong> ${item.inspector_name}</p>
+                        <p><strong>Tanggal:</strong> ${new Date(item.inspection_date).toLocaleString('id-ID')}</p>
+                        <p><strong>Risk Score:</strong> ${item.risk_score.toFixed(3)}</p>
+                        ${item.has_feedback ? '<span class="badge bg-success">✓ Feedback Tersedia</span>' : '<span class="badge bg-warning">⚠ Belum ada Feedback</span>'}
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        // Maintenance Schedule Functions
+        async function loadMaintenanceSchedule() {
+            try {
+                const response = await fetch(`${API_BASE}/api/scheduler/maintenance`);
+                if (response.ok) {
+                    const schedules = await response.json();
+                    displayMaintenanceSchedule(schedules);
+                } else {
+                    document.getElementById('activeMaintenanceList').innerHTML = '<p>Gagal memuat jadwal pemeliharaan</p>';
+                }
+            } catch (error) {
+                console.error('Error loading maintenance schedule:', error);
+                document.getElementById('activeMaintenanceList').innerHTML = '<p>Error loading maintenance schedule</p>';
+            }
+        }
+
+        function displayMaintenanceSchedule(schedules) {
+            const container = document.getElementById('activeMaintenanceList');
+            
+            if (schedules.length === 0) {
+                container.innerHTML = '<p>Belum ada jadwal pemeliharaan.</p>';
+                return;
+            }
+            
+            let html = '';
+            schedules.forEach(schedule => {
+                const priorityBadge = schedule.priority === 'critical' ? 'danger' : 
+                                    schedule.priority === 'urgent' ? 'warning' : 'info';
+                                    
+                html += `
+                    <div class="schedule-item" style="border: 1px solid #ddd; padding: 15px; margin-bottom: 10px; border-radius: 5px;">
+                        <div style="display: flex; justify-content: between; align-items: center;">
+                            <h4>${schedule.pipeline_id}</h4>
+                            <span class="badge bg-${priorityBadge}">${schedule.priority.toUpperCase()}</span>
+                        </div>
+                        <p><strong>Tipe:</strong> ${schedule.maintenance_type}</p>
+                        <p><strong>Tanggal:</strong> ${new Date(schedule.maintenance_date).toLocaleString('id-ID')}</p>
+                        <p><strong>Assigned to:</strong> ${schedule.assigned_to || 'Belum ditentukan'}</p>
+                        <p><strong>Status:</strong> ${schedule.status || 'Pending'}</p>
+                        ${schedule.description ? `<p><strong>Deskripsi:</strong> ${schedule.description}</p>` : ''}
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        // Feedback Learning Functions
+        async function loadPendingFeedback() {
+            try {
+                const response = await fetch(`${API_BASE}/api/training/feedback/pending`);
+                if (response.ok) {
+                    const feedbacks = await response.json();
+                    displayPendingFeedback(feedbacks);
+                } else {
+                    document.getElementById('pendingFeedbackList').innerHTML = '<p>Tidak ada feedback pending</p>';
+                }
+            } catch (error) {
+                console.error('Error loading pending feedback:', error);
+                document.getElementById('pendingFeedbackList').innerHTML = '<p>Error loading feedback data</p>';
+            }
+        }
+
+        function displayPendingFeedback(feedbacks) {
+            const container = document.getElementById('pendingFeedbackList');
+            
+            if (feedbacks.length === 0) {
+                container.innerHTML = '<p>Tidak ada feedback yang perlu direview.</p>';
+                return;
+            }
+            
+            let html = '';
+            feedbacks.forEach(feedback => {
+                html += `
+                    <div class="feedback-item" style="border: 1px solid #ddd; padding: 15px; margin-bottom: 10px; border-radius: 5px;">
+                        <h4>Inspection: ${feedback.pipeline_id}</h4>
+                        <p><strong>AI Assessment:</strong> ${feedback.ai_assessment}</p>
+                        <p><strong>Human Assessment:</strong> ${feedback.human_assessment}</p>
+                        <p><strong>Feedback Date:</strong> ${new Date(feedback.feedback_date).toLocaleString('id-ID')}</p>
+                        ${feedback.feedback_notes ? `<p><strong>Notes:</strong> ${feedback.feedback_notes}</p>` : ''}
+                        <span class="badge ${feedback.ai_assessment === feedback.human_assessment ? 'bg-success' : 'bg-warning'}">
+                            ${feedback.ai_assessment === feedback.human_assessment ? 'Match' : 'Mismatch - Learning Opportunity'}
+                        </span>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        async function loadLearningProgress() {
+            try {
+                const response = await fetch(`${API_BASE}/api/training/learning-progress`);
+                if (response.ok) {
+                    const progress = await response.json();
+                    displayLearningProgress(progress);
+                }
+            } catch (error) {
+                console.error('Error loading learning progress:', error);
+            }
+        }
+
+        function displayLearningProgress(progress) {
+            document.getElementById('totalFeedbackCount').textContent = progress.total_feedback || '0';
+            document.getElementById('accuracyImprovement').textContent = progress.accuracy_improvement || 'N/A';
+            document.getElementById('lastTrainingUpdate').textContent = 
+                progress.last_update ? new Date(progress.last_update).toLocaleString('id-ID') : 'Never';
+        }
+
+        async function triggerFeedbackLearning() {
+            try {
+                const response = await fetch(`${API_BASE}/api/training/trigger-learning`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                if (response.ok) {
+                    showAlert('AI learning update berhasil dimulai!', 'success');
+                    loadLearningProgress();
+                } else {
+                    showAlert('Gagal memulai AI learning update', 'danger');
+                }
+            } catch (error) {
+                console.error('Error triggering learning:', error);
+                showAlert('Terjadi kesalahan: ' + error.message, 'danger');
+            }
+        }
+    </script>
+</body>
+</html>

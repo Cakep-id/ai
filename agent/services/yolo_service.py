@@ -35,7 +35,14 @@ class YOLOService:
             'fracture': 'patah',
             'deformation': 'deformasi',
             'erosion': 'erosi',
-            'contamination': 'kontaminasi'
+            'contamination': 'kontaminasi',
+            # New damage types for mock detection
+            'korosi_ringan': 'korosi ringan',
+            'korosi_sedang': 'korosi sedang',
+            'korosi_parah': 'korosi parah',
+            'retak_permukaan': 'retak permukaan',
+            'retak_struktural': 'retak struktural',
+            'kebocoran': 'kebocoran'
         }
         
         # Risk mapping berdasarkan label
@@ -49,7 +56,14 @@ class YOLOService:
             'dent': 0.4,        # Low-medium risk
             'deformation': 0.75, # High risk
             'erosion': 0.65,    # Medium risk
-            'contamination': 0.3 # Low risk
+            'contamination': 0.3, # Low risk
+            # New damage types with varying risk levels
+            'korosi_ringan': 0.3,    # Low risk
+            'korosi_sedang': 0.6,    # Medium risk
+            'korosi_parah': 0.9,     # Very high risk
+            'retak_permukaan': 0.5,  # Medium risk
+            'retak_struktural': 0.85, # High risk
+            'kebocoran': 0.8         # High risk
         }
         
         self._load_model()
@@ -183,47 +197,137 @@ class YOLOService:
         # Mock detection if model is not available
         if self.model is None:
             logger.warning("YOLO model not available, returning mock detection")
-            # Simulasi deteksi berbagai jenis aset untuk demo
+            import random
+            import hashlib
+            
+            # Create a seed based on image path to get consistent but varied results per image
+            image_seed = int(hashlib.md5(image_path.encode()).hexdigest()[:8], 16)
+            random.seed(image_seed)
+            
+            # Get actual image dimensions if possible
+            try:
+                test_image = cv2.imread(image_path)
+                if test_image is not None:
+                    img_height, img_width = test_image.shape[:2]
+                else:
+                    img_width, img_height = 640, 480
+            except:
+                img_width, img_height = 640, 480
+            
+            # Define different damage scenarios with varying severity
+            damage_scenarios = [
+                # Low severity scenario
+                {
+                    'detections': [
+                        {
+                            'name': 'korosi_ringan',
+                            'confidence': random.uniform(0.6, 0.75),
+                            'bbox': {
+                                'x': random.randint(50, img_width-150),
+                                'y': random.randint(50, img_height-100),
+                                'width': random.randint(80, 120),
+                                'height': random.randint(60, 100)
+                            }
+                        }
+                    ],
+                    'severity': 'LOW'
+                },
+                # Medium severity scenario
+                {
+                    'detections': [
+                        {
+                            'name': 'korosi_sedang',
+                            'confidence': random.uniform(0.7, 0.85),
+                            'bbox': {
+                                'x': random.randint(30, img_width-200),
+                                'y': random.randint(30, img_height-150),
+                                'width': random.randint(150, 250),
+                                'height': random.randint(120, 200)
+                            }
+                        },
+                        {
+                            'name': 'retak_permukaan',
+                            'confidence': random.uniform(0.65, 0.8),
+                            'bbox': {
+                                'x': random.randint(100, img_width-100),
+                                'y': random.randint(100, img_height-80),
+                                'width': random.randint(60, 120),
+                                'height': random.randint(40, 80)
+                            }
+                        }
+                    ],
+                    'severity': 'MEDIUM'
+                },
+                # High severity scenario
+                {
+                    'detections': [
+                        {
+                            'name': 'korosi_parah',
+                            'confidence': random.uniform(0.85, 0.95),
+                            'bbox': {
+                                'x': random.randint(20, img_width-300),
+                                'y': random.randint(20, img_height-250),
+                                'width': random.randint(250, 350),
+                                'height': random.randint(200, 300)
+                            }
+                        },
+                        {
+                            'name': 'retak_struktural',
+                            'confidence': random.uniform(0.8, 0.9),
+                            'bbox': {
+                                'x': random.randint(50, img_width-200),
+                                'y': random.randint(50, img_height-150),
+                                'width': random.randint(180, 250),
+                                'height': random.randint(120, 180)
+                            }
+                        },
+                        {
+                            'name': 'kebocoran',
+                            'confidence': random.uniform(0.75, 0.85),
+                            'bbox': {
+                                'x': random.randint(80, img_width-120),
+                                'y': random.randint(80, img_height-100),
+                                'width': random.randint(80, 150),
+                                'height': random.randint(60, 120)
+                            }
+                        }
+                    ],
+                    'severity': 'HIGH'
+                }
+            ]
+            
+            # Select scenario based on image path hash to ensure consistency
+            scenario_index = image_seed % len(damage_scenarios)
+            selected_scenario = damage_scenarios[scenario_index]
+            
+            # Sometimes return no detections for truly clean images
+            if image_seed % 10 == 0:  # 10% chance of no detections
+                selected_scenario = {
+                    'detections': [],
+                    'severity': 'NONE'
+                }
+            
+            # Simulate various asset types
             mock_assets = [
                 'Generator', 'Kompresor', 'Motor Listrik', 'Pompa Air', 
                 'Transformator', 'Panel Listrik', 'Mesin Diesel', 'Kipas Angin',
-                'AC Unit', 'Conveyor Belt', 'Crane', 'Forklift'
+                'AC Unit', 'Conveyor Belt', 'Crane', 'Forklift', 'Pipeline', 'Valve',
+                'Heat Exchanger', 'Pressure Vessel', 'Turbine', 'Boiler'
             ]
-            import random
-            mock_asset = random.choice(mock_assets)
+            mock_asset = mock_assets[image_seed % len(mock_assets)]
             
             return {
                 'success': True,
-                'detections': [
-                    {
-                        'name': 'korosi_ringan',
-                        'confidence': 0.85,
-                        'bbox': {
-                            'x': 100,
-                            'y': 100,
-                            'width': 200,
-                            'height': 200
-                        }
-                    },
-                    {
-                        'name': 'retak_permukaan',
-                        'confidence': 0.78,
-                        'bbox': {
-                            'x': 300,
-                            'y': 150,
-                            'width': 180,
-                            'height': 120
-                        }
-                    }
-                ],
-                'asset_type': mock_asset,  # Nama aset dalam bahasa Indonesia
+                'detections': selected_scenario['detections'],
+                'asset_type': mock_asset,
+                'severity': selected_scenario['severity'],
                 'image_info': {
-                    'width': 640,
-                    'height': 480,
+                    'width': img_width,
+                    'height': img_height,
                     'channels': 3
                 },
-                'model_version': 'mock_v1.0',
-                'processing_time': 0.1
+                'model_version': 'mock_v2.0_dynamic',
+                'processing_time': random.uniform(0.08, 0.15)
             }
         
         try:

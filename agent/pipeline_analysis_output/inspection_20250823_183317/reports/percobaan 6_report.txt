@@ -1,0 +1,30 @@
+
+LAPORAN INSPEKSI PIPA - percobaan 6
+=====================================
+
+ID Inspeksi: 20250823_183317
+Tanggal: 2025-08-23 18:33:18
+Nama Pipa: percobaan 6
+
+HASIL ANALISIS
+--------------
+Terdeteksi 1 jenis kerusakan. korosi_ringan ringan dengan area ±88 mm² (confidence: 0.60). Total area kerusakan: 88 mm² (8.1% dari area inspeksi).
+
+TINGKAT KERUSAKAN: Medium
+Area Total: 88 mm² (8.1%)
+
+REKOMENDASI TINDAKAN
+-------------------
+Jadwalkan inspeksi lanjutan dalam 1-2 bulan. Area kerusakan 8.1% memerlukan perhatian. Evaluasi penyebab kerusakan.
+
+PROSEDUR PERBAIKAN DETAIL
+------------------------
+Prosedur perbaikan tidak tersedia
+
+DETAIL DETEKSI
+--------------
+
+1. korosi_ringan
+   - Confidence: 0.60
+   - Area: 88 mm²
+   - Lokasi: x=102, y=142

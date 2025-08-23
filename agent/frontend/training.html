@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dataset Training - CAKEP.id EWS</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .training-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .training-tabs {
+            display: flex;
+            background: #f5f5f5;
+            border-radius: 8px;
+            padding: 4px;
+            margin-bottom: 30px;
+        }
+        
+        .tab-button {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            background: transparent;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+            position: relative;
+            z-index: 10;
+            color: #64748b;
+        }
+        
+        .tab-button:hover {
+            background: #f1f5f9;
+            color: #2563eb;
+        }
+        
+        .tab-button.active {
+            background: #2563eb;
+            color: white;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .form-section {
+            background: white;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #374151;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #2563eb;
+        }
+        
+        .file-upload-area {
+            border: 2px dashed #d1d5db;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 20px;
+        }
+        
+        .file-upload-area:hover {
+            border-color: #2563eb;
+            background: #f8fafc;
+        }
+        
+        .file-upload-area.dragover {
+            border-color: #2563eb;
+            background: #eff6ff;
+        }
+        
+        .upload-icon {
+            width: 48px;
+            height: 48px;
+            margin: 0 auto 15px;
+            background: #e5e7eb;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-primary {
+            background: #2563eb;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #1d4ed8;
+        }
+        
+        .btn-success {
+            background: #059669;
+            color: white;
+        }
+        
+        .btn-danger {
+            background: #dc2626;
+            color: white;
+        }
+        
+        .dataset-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-left: 4px solid #2563eb;
+        }
+        
+        .dataset-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .dataset-info {
+            flex: 1;
+        }
+        
+        .dataset-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .status-uploading {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .status-ready {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .status-training {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .status-completed {
+            background: #e0e7ff;
+            color: #3730a3;
+        }
+        
+        .annotation-tool {
+            position: relative;
+            display: inline-block;
+            margin-top: 20px;
+        }
+        
+        .annotation-canvas {
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            cursor: crosshair;
+        }
+        
+        .annotation-controls {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: #2563eb;
+            transition: width 0.3s;
+        }
+        
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #34d399;
+        }
+        
+        .alert-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #f87171;
+        }
+        
+        .alert-info {
+            background: #dbeafe;
+            color: #1e40af;
+            border: 1px solid #60a5fa;
+        }
+        
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+        
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+            border-top-color: transparent;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .image-preview {
+            max-width: 100%;
+            max-height: 400px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        
+        .annotation-list {
+            background: #f8fafc;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+        
+        .annotation-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .annotation-item:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="training-container">
+        <h1>🤖 Dataset Training Management</h1>
+        <p>Kelola dataset training untuk model YOLO detection</p>
+        
+        <!-- Tab Navigation -->
+                <div class="training-tabs">
+            <button class="tab-button active" onclick="switchTab(event, 'manage-datasets')">
+                <i class="fas fa-database"></i> Kelola Dataset
+            </button>
+            <button class="tab-button" onclick="switchTab(event, 'upload-images')">
+                <i class="fas fa-images"></i> Upload Gambar
+            </button>
+            <button class="tab-button" onclick="switchTab(event, 'start-training')">
+                <i class="fas fa-play"></i> Mulai Training
+            </button>
+        </div>
+        
+        <!-- Create Dataset Tab -->
+        <div id="create-dataset" class="tab-content active">
+            <div class="form-section">
+                <h2>📝 Buat Dataset Baru</h2>
+                <form id="createDatasetForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="datasetName">Nama Dataset *</label>
+                            <input type="text" id="datasetName" name="dataset_name" required 
+                                   placeholder="Contoh: Pipeline_Corrosion_v1">
+                        </div>
+                        <div class="form-group">
+                            <label for="uploadedBy">Dibuat Oleh *</label>
+                            <input type="text" id="uploadedBy" name="uploaded_by" required 
+                                   placeholder="Nama admin/engineer">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="datasetDescription">Deskripsi Dataset</label>
+                        <textarea id="datasetDescription" name="description" rows="4" 
+                                placeholder="Deskripsi dataset, tujuan, dan karakteristik data..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <span class="btn-text">Buat Dataset</span>
+                        <span class="spinner" style="display: none;"></span>
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Upload Images Tab -->
+        <div id="upload-images" class="tab-content">
+            <div class="form-section">
+                <h2>📸 Upload Gambar Training</h2>
+                
+                <!-- Dataset Selection -->
+                <div class="form-group">
+                    <label for="targetDataset">Pilih Dataset Target *</label>
+                    <select id="targetDataset" name="dataset_id" required>
+                        <option value="">-- Pilih Dataset --</option>
+                    </select>
+                    <button type="button" class="btn btn-primary" onclick="loadDatasets()">
+                        🔄 Refresh Dataset
+                    </button>
+                </div>
+                
+                <!-- Image Upload Form -->
+                <form id="uploadImageForm">
+                    <div class="file-upload-area" id="fileUploadArea">
+                        <div class="upload-icon">📁</div>
+                        <h3>Drag & Drop gambar di sini</h3>
+                        <p>atau klik untuk memilih file</p>
+                        <input type="file" id="imageFile" name="image_file" accept=".jpg,.jpeg,.png,.bmp,.tiff" 
+                               style="display: none;" multiple>
+                    </div>
+                    
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="damageType">Jenis Kerusakan *</label>
+                            <select id="damageType" name="damage_type" required>
+                                <option value="">-- Pilih Jenis Kerusakan --</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="damageSeverity">Tingkat Kerusakan *</label>
+                            <select id="damageSeverity" name="damage_severity" required>
+                                <option value="">-- Pilih Tingkat --</option>
+                                <option value="LOW">LOW - Kerusakan Ringan</option>
+                                <option value="MEDIUM">MEDIUM - Kerusakan Sedang</option>
+                                <option value="HIGH">HIGH - Kerusakan Parah</option>
+                                <option value="CRITICAL">CRITICAL - Kerusakan Kritis</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="damageDescription">Deskripsi Kerusakan</label>
+                        <textarea id="damageDescription" name="damage_description" rows="3" 
+                                placeholder="Deskripsi detail tentang kerusakan yang terlihat..."></textarea>
+                    </div>
+                    
+                    <!-- Image Preview and Annotation -->
+                    <div id="imagePreviewContainer" style="display: none;">
+                        <h3>Preview & Annotation</h3>
+                        <img id="imagePreview" class="image-preview" alt="Preview">
+                        
+                        <!-- Annotation Tool -->
+                        <div class="annotation-tool">
+                            <canvas id="annotationCanvas" class="annotation-canvas"></canvas>
+                        </div>
+                        
+                        <div class="annotation-controls">
+                            <button type="button" class="btn btn-primary" onclick="addAnnotation()">
+                                ➕ Tambah Annotation
+                            </button>
+                            <button type="button" class="btn btn-danger" onclick="clearAnnotations()">
+                                🗑️ Hapus Semua
+                            </button>
+                            <select id="annotationClass">
+                                <option value="">-- Pilih Class --</option>
+                            </select>
+                        </div>
+                        
+                        <div id="annotationList" class="annotation-list">
+                            <h4>Daftar Annotations</h4>
+                            <div id="annotations"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-success">
+                            <span class="btn-text">📤 Upload Gambar</span>
+                            <span class="spinner" style="display: none;"></span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Manage Datasets Tab -->
+        <div id="manage-datasets" class="tab-content">
+            <div class="form-section">
+                <h2>📊 Kelola Dataset</h2>
+                <button class="btn btn-primary" onclick="loadDatasetList()">
+                    🔄 Refresh Data
+                </button>
+                
+                <div id="datasetList" class="dataset-list">
+                    <!-- Dataset cards will be loaded here -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- Start Training Tab -->
+        <div id="start-training" class="tab-content">
+            <div class="form-section">
+                <h2>🚀 Mulai Training Session</h2>
+                
+                <form id="startTrainingForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="trainingDataset">Dataset untuk Training *</label>
+                            <select id="trainingDataset" name="dataset_id" required>
+                                <option value="">-- Pilih Dataset --</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="sessionName">Nama Session *</label>
+                            <input type="text" id="sessionName" name="session_name" required 
+                                   placeholder="Training_Pipeline_v1">
+                        </div>
+                    </div>
+                    
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="epochs">Epochs</label>
+                            <input type="number" id="epochs" name="epochs" value="100" min="10" max="1000">
+                        </div>
+                        <div class="form-group">
+                            <label for="batchSize">Batch Size</label>
+                            <input type="number" id="batchSize" name="batch_size" value="16" min="1" max="64">
+                        </div>
+                    </div>
+                    
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="learningRate">Learning Rate</label>
+                            <input type="number" id="learningRate" name="learning_rate" value="0.001" step="0.0001" min="0.0001" max="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label for="modelArchitecture">Model Architecture</label>
+                            <select id="modelArchitecture" name="model_architecture">
+                                <option value="yolov8n">YOLOv8 Nano (Fast)</option>
+                                <option value="yolov8s">YOLOv8 Small</option>
+                                <option value="yolov8m">YOLOv8 Medium</option>
+                                <option value="yolov8l">YOLOv8 Large</option>
+                                <option value="yolov8x">YOLOv8 XLarge (Best)</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="startedBy">Training Engineer *</label>
+                        <input type="text" id="startedBy" name="started_by" required 
+                               placeholder="Nama engineer yang memulai training">
+                    </div>
+                    
+                    <button type="submit" class="btn btn-success">
+                        <span class="btn-text">🚀 Mulai Training</span>
+                        <span class="spinner" style="display: none;"></span>
+                    </button>
+                </form>
+                
+                <!-- Training Sessions List -->
+                <div id="trainingSessionsList" style="margin-top: 30px;">
+                    <h3>📈 Riwayat Training Sessions</h3>
+                    <div id="sessionsList"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Alert Container -->
+    <div id="alertContainer"></div>
+    
+    <script src="training-script.js"></script>
+</body>
+</html>

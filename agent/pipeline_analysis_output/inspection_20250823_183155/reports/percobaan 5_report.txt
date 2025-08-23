@@ -1,0 +1,35 @@
+
+LAPORAN INSPEKSI PIPA - percobaan 5
+=====================================
+
+ID Inspeksi: 20250823_183155
+Tanggal: 2025-08-23 18:31:56
+Nama Pipa: percobaan 5
+
+HASIL ANALISIS
+--------------
+Terdeteksi 2 jenis kerusakan. korosi_sedang sedang dengan area ±250 mm² (confidence: 0.71). retak_permukaan ringan dengan area ±34 mm² (confidence: 0.73). Total area kerusakan: 284 mm² (26.0% dari area inspeksi).
+
+TINGKAT KERUSAKAN: High
+Area Total: 284 mm² (26.0%)
+
+REKOMENDASI TINDAKAN
+-------------------
+Lakukan perbaikan segera! Area kerusakan 26.0% sudah mencapai level kritis. Hentikan operasi jika diperlukan.
+
+PROSEDUR PERBAIKAN DETAIL
+------------------------
+Prosedur perbaikan tidak tersedia
+
+DETAIL DETEKSI
+--------------
+
+1. korosi_sedang
+   - Confidence: 0.71
+   - Area: 250 mm²
+   - Lokasi: x=64, y=85
+
+2. retak_permukaan
+   - Confidence: 0.73
+   - Area: 34 mm²
+   - Lokasi: x=142, y=138

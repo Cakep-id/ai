@@ -67,7 +67,7 @@ app.add_middleware(
 )
 
 # Include API routers
-from api import cv_endpoints, nlp_endpoints, risk_endpoints, schedule_endpoints, admin_endpoints, validation_endpoints, user_endpoints, admin_validation_endpoints, pipeline_endpoints
+from api import cv_endpoints, nlp_endpoints, risk_endpoints, schedule_endpoints, admin_endpoints, validation_endpoints, user_endpoints, admin_validation_endpoints, pipeline_endpoints, training_endpoints, feedback_endpoints, scheduler_endpoints
 
 app.include_router(cv_endpoints.router, prefix="/api/cv", tags=["Computer Vision"])
 app.include_router(nlp_endpoints.router, prefix="/api/nlp", tags=["NLP Analysis"])
@@ -78,6 +78,9 @@ app.include_router(validation_endpoints.router, prefix="/api/validation", tags=[
 app.include_router(user_endpoints.router, tags=["User Reports"])
 app.include_router(admin_validation_endpoints.router, tags=["Admin Validation"])
 app.include_router(pipeline_endpoints.router, prefix="/api", tags=["Pipeline Inspection"])
+app.include_router(training_endpoints.router, tags=["Dataset Training"])
+app.include_router(feedback_endpoints.router, tags=["Feedback Learning"])
+app.include_router(scheduler_endpoints.router, tags=["Maintenance Scheduler"])
 
 # Mount static files for frontend
 app.mount("/static", StaticFiles(directory="frontend"), name="static")
@@ -102,6 +105,26 @@ async def serve_user_dashboard():
 async def serve_pipeline_inspection():
     """Serve pipeline inspection dashboard"""
     return FileResponse("frontend/pipeline.html")
+
+@app.get("/training")
+async def serve_training_interface():
+    """Serve training interface untuk dataset management"""
+    return FileResponse("frontend/training.html")
+
+@app.get("/training.html")
+async def serve_training_interface_alt():
+    """Alternative route for training interface"""
+    return FileResponse("frontend/training.html")
+
+@app.get("/integrated")
+async def serve_integrated_interface():
+    """Serve integrated pipeline and training interface"""
+    return FileResponse("frontend/integrated.html")
+
+@app.get("/integrated.html")
+async def serve_integrated_interface_alt():
+    """Alternative route for integrated interface"""
+    return FileResponse("frontend/integrated.html")
 
 @app.on_event("startup")
 async def startup_event():
