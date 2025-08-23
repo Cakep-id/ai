@@ -25,17 +25,14 @@
             <button class="nav-tab active" data-tab="validation">
                 <i class="fas fa-check-circle"></i> Antrian Validasi
             </button>
-            <button class="nav-tab" data-tab="reports">
-                <i class="fas fa-edit"></i> Edit Laporan
-            </button>
             <button class="nav-tab" data-tab="upload">
-                <i class="fas fa-database"></i> Data Training
+                <i class="fas fa-upload"></i> Formulir Training
             </button>
             <button class="nav-tab" data-tab="monitoring">
                 <i class="fas fa-chart-line"></i> Monitor Sistem
             </button>
             <button class="nav-tab" data-tab="training">
-                <i class="fas fa-brain"></i> Data Training
+                <i class="fas fa-database"></i> Data Training
             </button>
         </nav>
 
@@ -72,49 +69,20 @@
                 </div>
             </div>
 
-            <!-- Reports Management Tab -->
-            <div id="reportsTab" class="tab-content">
-                <div class="section-header">
-                    <h2>Edit Laporan & Risk Level</h2>
-                    <button class="btn btn-primary" id="refreshReportsBtn">
-                        <i class="fas fa-refresh"></i> Refresh
-                    </button>
-                </div>
-
-                <div class="filter-bar">
-                    <select id="reportRiskFilter">
-                        <option value="">Semua Risk Level</option>
-                        <option value="HIGH">High</option>
-                        <option value="MEDIUM">Medium</option>
-                        <option value="LOW">Low</option>
-                    </select>
-                    <select id="reportStatusFilter">
-                        <option value="">Semua Status</option>
-                        <option value="pending">Pending</option>
-                        <option value="under_review">Under Review</option>
-                        <option value="approved">Approved</option>
-                        <option value="rejected">Rejected</option>
-                    </select>
-                </div>
-
-                <div id="reportsQueue" class="reports-queue">
-                    <!-- Laporan akan dimuat di sini -->
-                </div>
-            </div>
-
-            <!-- Risk Management Tab -->
+            <!-- Formulir Training Tab -->
             <div id="uploadTab" class="tab-content">
                 <div class="section-header">
-                    <h2>Manajemen Risiko & Data Training</h2>
+                    <h2>Formulir Training AI</h2>
+                    <p>Upload data training untuk meningkatkan akurasi AI dalam mendeteksi kerusakan</p>
                 </div>
 
                 <div class="upload-section">
                     <div class="upload-card">
                         <h3><i class="fas fa-images"></i> Upload Gambar Training</h3>
+                        <input type="file" id="imageUpload" multiple accept="image/*" style="display: none;">
                         <div class="upload-area" id="imageUploadArea">
                             <i class="fas fa-cloud-upload-alt"></i>
                             <p>Seret & lepas gambar di sini atau <span class="upload-link">pilih file</span></p>
-                            <input type="file" id="imageUpload" multiple accept="image/*" hidden>
                         </div>
                         
                         <div class="risk-category-selector">
@@ -175,34 +143,99 @@
             </div>
 
             <!-- System Monitor Tab -->
-                        <!-- Monitoring Tab -->
             <div id="monitoringTab" class="tab-content">
                 <div class="section-header">
-                    <h2>Monitor Sistem</h2>
+                    <h2>Monitor Sistem AI</h2>
+                    <p>Grafik perkembangan AI dan analisis performa model</p>
                     <button class="btn btn-primary" id="refreshSystemBtn">
-                        <i class="fas fa-refresh"></i> Refresh
+                        <i class="fas fa-refresh"></i> Refresh Data
                     </button>
                 </div>
 
-                <div class="status-grid">
-                    <div class="status-card">
-                        <h3>Status Layanan</h3>
-                        <div id="serviceList">
-                            <!-- Status layanan akan dimuat di sini -->
+                <div class="monitoring-grid">
+                    <!-- AI Performance Metrics -->
+                    <div class="metric-card">
+                        <h3><i class="fas fa-brain"></i> Performa Model AI</h3>
+                        <div class="metric-content">
+                            <div class="metric-item">
+                                <span class="metric-label">Akurasi Model:</span>
+                                <span class="metric-value" id="modelAccuracy">--</span>
+                            </div>
+                            <div class="metric-item">
+                                <span class="metric-label">Total Prediksi:</span>
+                                <span class="metric-value" id="totalPredictions">--</span>
+                            </div>
+                            <div class="metric-item">
+                                <span class="metric-label">Prediksi Benar:</span>
+                                <span class="metric-value" id="correctPredictions">--</span>
+                            </div>
                         </div>
                     </div>
 
-                    <div class="status-card">
-                        <h3>Metrik Performa</h3>
-                        <div id="performanceList">
-                            <!-- Metrik performa akan dimuat di sini -->
+                    <!-- Detection Statistics -->
+                    <div class="metric-card">
+                        <h3><i class="fas fa-search"></i> Statistik Deteksi</h3>
+                        <div class="chart-container">
+                            <canvas id="detectionChart" width="400" height="200"></canvas>
                         </div>
                     </div>
 
-                    <div class="status-card">
-                        <h3>Log Error</h3>
-                        <div id="errorList">
-                            <!-- Log error akan dimuat di sini -->
+                    <!-- Risk Level Distribution -->
+                    <div class="metric-card">
+                        <h3><i class="fas fa-exclamation-triangle"></i> Distribusi Risk Level</h3>
+                        <div class="risk-stats">
+                            <div class="risk-item risk-low">
+                                <span class="risk-label">Low Risk</span>
+                                <span class="risk-count" id="lowRiskCount">--</span>
+                            </div>
+                            <div class="risk-item risk-medium">
+                                <span class="risk-label">Medium Risk</span>
+                                <span class="risk-count" id="mediumRiskCount">--</span>
+                            </div>
+                            <div class="risk-item risk-high">
+                                <span class="risk-label">High Risk</span>
+                                <span class="risk-count" id="highRiskCount">--</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Training Progress -->
+                    <div class="metric-card">
+                        <h3><i class="fas fa-chart-line"></i> Perkembangan Training</h3>
+                        <div class="training-progress">
+                            <div class="progress-item">
+                                <span class="progress-label">Data Training:</span>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="trainingDataProgress" style="width: 0%"></div>
+                                </div>
+                                <span class="progress-text" id="trainingDataText">0/100 samples</span>
+                            </div>
+                            <div class="progress-item">
+                                <span class="progress-label">Model Training:</span>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" id="modelTrainingProgress" style="width: 0%"></div>
+                                </div>
+                                <span class="progress-text" id="modelTrainingText">0 epochs completed</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AI Improvement Areas -->
+                    <div class="metric-card full-width">
+                        <h3><i class="fas fa-clipboard-list"></i> Area yang Perlu Diperbaiki</h3>
+                        <div class="improvement-list" id="improvementAreas">
+                            <div class="improvement-item">
+                                <i class="fas fa-exclamation-circle text-warning"></i>
+                                <span>Akurasi deteksi untuk Generator masih rendah (65%)</span>
+                            </div>
+                            <div class="improvement-item">
+                                <i class="fas fa-exclamation-circle text-warning"></i>
+                                <span>Perlu lebih banyak data training untuk Kompresor</span>
+                            </div>
+                            <div class="improvement-item">
+                                <i class="fas fa-info-circle text-info"></i>
+                                <span>Model performa baik untuk Motor Listrik (87% akurasi)</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -211,30 +244,74 @@
             <!-- Training Data Tab -->
             <div id="trainingTab" class="tab-content">
                 <div class="section-header">
-                    <h2>Manajemen Data Training</h2>
+                    <h2>Data Training AI</h2>
+                    <p>Kelola dan monitor dataset training untuk model AI</p>
+                    <button class="btn btn-primary" id="refreshTrainingBtn">
+                        <i class="fas fa-refresh"></i> Refresh
+                    </button>
                 </div>
 
-                <div class="training-summary" id="trainingSummary">
-                    <h3>Ringkasan Data Training</h3>
-                    <!-- Ringkasan data training akan dimuat di sini -->
-                </div>
-
-                <div class="batch-preparation">
-                    <h3>Siapkan Batch Training</h3>
-                    <div class="batch-controls">
-                        <select id="data-type-select" class="form-input">
-                            <option value="yolo_detection">Deteksi YOLO</option>
-                            <option value="nlp_analysis">Analisis NLP</option>
-                            <option value="risk_assessment">Penilaian Risiko</option>
-                            <option value="scheduling">Penjadwalan</option>
-                        </select>
-                        <input type="number" id="prepareBatchSize" value="50" min="10" max="200" class="form-input" placeholder="Ukuran batch">
-                        <input type="text" id="batch-name-input" placeholder="Nama batch (opsional)" class="form-input">
-                        <button class="btn btn-success" id="prepareBatchBtn">
-                            <i class="fas fa-database"></i> Siapkan Batch
-                        </button>
+                <div class="training-stats">
+                    <div class="stat-card">
+                        <h3><i class="fas fa-images"></i> Total Dataset</h3>
+                        <div class="stat-number" id="totalDataset">--</div>
+                        <div class="stat-label">Gambar Training</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3><i class="fas fa-check-circle"></i> Ter-validasi</h3>
+                        <div class="stat-number" id="validatedData">--</div>
+                        <div class="stat-label">Data Sudah Divalidasi</div>
+                    </div>
+                    <div class="stat-card">
+                        <h3><i class="fas fa-clock"></i> Pending</h3>
+                        <div class="stat-number" id="pendingData">--</div>
+                        <div class="stat-label">Menunggu Validasi</div>
                     </div>
                 </div>
+
+                <div class="dataset-filters">
+                    <div class="filter-group">
+                        <label>Status Validasi:</label>
+                        <select id="validationFilter" class="form-input">
+                            <option value="">Semua Status</option>
+                            <option value="validated">Ter-validasi</option>
+                            <option value="pending">Pending</option>
+                            <option value="rejected">Ditolak</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Risk Level:</label>
+                        <select id="riskFilter" class="form-input">
+                            <option value="">Semua Level</option>
+                            <option value="LOW">Low</option>
+                            <option value="MEDIUM">Medium</option>
+                            <option value="HIGH">High</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="dataset-table-container">
+                    <table class="dataset-table" id="datasetTable">
+                        <thead>
+                            <tr>
+                                <th>Gambar</th>
+                                <th>Nama File</th>
+                                <th>Risk Level</th>
+                                <th>Status</th>
+                                <th>Tanggal Upload</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="datasetTableBody">
+                            <!-- Dataset entries akan dimuat di sini -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="pagination" id="datasetPagination">
+                    <!-- Pagination controls akan dimuat di sini -->
+                </div>
+            </div>
             </div>
         </main>
 

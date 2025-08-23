@@ -1,0 +1,15 @@
+2025-08-23 12:34:04 | INFO | main | ✅ Database connection established
+2025-08-23 12:34:04 | INFO | main | 🔧 Testing services...
+2025-08-23 12:34:04 | WARNING | main | ⚠️ YOLO service issues
+2025-08-23 12:34:05 | INFO | main | ✅ Groq AI service ready
+2025-08-23 12:34:05 | INFO | risk_engine | Starting risk aggregation for report 1
+2025-08-23 12:34:07 | INFO | groq_service | Groq client initialized successfully
+2025-08-23 12:34:07 | WARNING | risk_engine | Groq procedure generation failed, using fallback template
+2025-08-23 12:34:07 | INFO | risk_engine | Risk aggregation completed: LOW risk (score: 0.444)
+2025-08-23 12:34:07 | INFO | main | ✅ Risk Engine ready
+2025-08-23 12:34:07 | INFO | main | 🎯 CAKEP.id EWS AI Module startup completed!
+2025-08-23 12:34:34 | ERROR | db | Database session error: List argument must consist only of tuples or dictionaries
+2025-08-23 12:34:34 | ERROR | db | Fetch all failed: List argument must consist only of tuples or dictionaries
+2025-08-23 12:35:02 | INFO | main | 🛑 Shutting down CAKEP.id EWS AI Module...
+2025-08-23 12:35:02 | INFO | main | ℹ️ Database service cleanup not required
+2025-08-23 12:35:02 | INFO | main | 👋 CAKEP.id EWS AI Module shutdown completed!

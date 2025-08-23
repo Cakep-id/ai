@@ -97,18 +97,16 @@ CREATE TABLE user_reports (
 CREATE TABLE admin_training_data (
     training_id INT PRIMARY KEY AUTO_INCREMENT,
     uploaded_by_admin INT NOT NULL,
+    filename VARCHAR(255) NOT NULL,
     image_path VARCHAR(500) NOT NULL,
-    asset_category_id INT NOT NULL,
-    damage_type_id INT NOT NULL,
     damage_description TEXT NOT NULL,
     risk_level ENUM('CRITICAL', 'HIGH', 'MEDIUM', 'LOW') NOT NULL,
     annotations JSON, -- koordinat bbox jika ada
+    validation_status ENUM('pending', 'validated', 'rejected') DEFAULT 'pending',
     is_active BOOLEAN DEFAULT TRUE,
     uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     
-    FOREIGN KEY (uploaded_by_admin) REFERENCES users(user_id),
-    FOREIGN KEY (asset_category_id) REFERENCES asset_categories(category_id),
-    FOREIGN KEY (damage_type_id) REFERENCES damage_types(damage_type_id)
+    FOREIGN KEY (uploaded_by_admin) REFERENCES users(user_id)
 );
 
 -- 7. AI Learning History (track pembelajaran AI)

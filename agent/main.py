@@ -102,10 +102,12 @@ async def startup_event():
     """Startup event handler"""
     logger.info("🚀 Starting CAKEP.id EWS AI Module...")
     
-    # Setup logging
+    # Setup logging with env config
     log_level = getattr(settings, 'log_level', 'INFO')
+    log_file = getattr(settings, 'log_file', 'logs/ews_ai.log')
+    
     logger.add(
-        "logs/ews_ai.log",
+        log_file,
         rotation="100 MB",
         retention="30 days",
         level=log_level,

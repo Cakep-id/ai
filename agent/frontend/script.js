@@ -22,37 +22,74 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Initialize application
 function initializeApp() {
+    console.log('Initializing app...');
     showTab('validation');
     updateSystemStatus();
     setInterval(updateSystemStatus, 30000); // Update every 30 seconds
+    
+    // Test click functionality
+    setTimeout(() => {
+        console.log('Testing click functionality...');
+        const tabs = document.querySelectorAll('.nav-tab');
+        tabs.forEach((tab, index) => {
+            console.log(`Tab ${index}: ${tab.textContent.trim()}, data-tab: ${tab.dataset.tab}`);
+        });
+    }, 1000);
 }
 
-// Setup event listeners
+// Event Listeners Setup
 function setupEventListeners() {
     console.log('Setting up event listeners...');
     
-    // Tab navigation
-    document.querySelectorAll('.nav-tab').forEach(tab => {
-        tab.addEventListener('click', function() {
-            console.log('Tab clicked:', this.getAttribute('data-tab'));
-            const tabId = this.getAttribute('data-tab');
-            showTab(tabId);
+    // Simple tab click test
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('nav-tab') || e.target.closest('.nav-tab')) {
+            const tab = e.target.classList.contains('nav-tab') ? e.target : e.target.closest('.nav-tab');
+            console.log('Nav tab clicked:', tab.dataset.tab);
+            e.preventDefault();
+            e.stopPropagation();
+            showTab(tab.dataset.tab);
+        }
+    });
+    
+    // Tab handlers
+    const tabs = document.querySelectorAll('.nav-tab');
+    console.log('Found tabs:', tabs.length);
+    
+    tabs.forEach((tab, index) => {
+        console.log(`Setting up tab ${index}:`, tab.dataset.tab);
+        tab.addEventListener('click', (e) => {
+            console.log('Tab clicked:', tab.dataset.tab);
+            e.preventDefault();
+            e.stopPropagation();
+            const targetTab = tab.dataset.tab;
+            showTab(targetTab);
         });
     });
 
-    // Refresh buttons
-    const refreshBtn = document.getElementById('refreshValidationBtn');
-    if (refreshBtn) {
-        refreshBtn.addEventListener('click', loadValidationQueue);
-    }
-    
-    const refreshReportsBtn = document.getElementById('refreshReportsBtn');
-    if (refreshReportsBtn) {
-        refreshReportsBtn.addEventListener('click', loadReportsQueue);
+    // Training data handlers
+    const refreshTrainingBtn = document.getElementById('refreshTrainingBtn');
+    if (refreshTrainingBtn) {
+        refreshTrainingBtn.addEventListener('click', () => {
+            loadTrainingData();
+        });
     }
 
-    // Upload handlers
-    setupFileUploads();
+    // Filter handlers for training data
+    const filters = ['validationFilter', 'riskFilter'];
+    filters.forEach(filterId => {
+        const filterElement = document.getElementById(filterId);
+        if (filterElement) {
+            filterElement.addEventListener('change', () => {
+                loadTrainingData();
+            });
+        }
+    });
+
+    // Other existing handlers
+    setupFormHandlers();
+    setupModalHandlers();
+    setupFileUploads(); // Add file upload handlers
 }
 
 // Tab management
@@ -110,6 +147,7 @@ function showTab(tabId) {
 function loadInitialData() {
     loadValidationQueue();
     loadDashboardStats();
+    loadTrainingData(); // Load training data when page loads
 }
 
 // Validation Queue Management
@@ -397,41 +435,154 @@ function renderTrainingData(trainingData, statistics) {
 }
 
 // Dashboard Statistics
+// Load dashboard statistics from database
 async function loadDashboardStats() {
     try {
+        showLoading('dashboardStats');
+        
         const response = await fetch(`${API_BASE}/admin/dashboard-stats`);
         const data = await response.json();
         
         if (data.success) {
-            renderDashboardStats(data.stats);
+            updateDashboardDisplay(data.stats);
+        } else {
+            console.error('Failed to load dashboard stats:', data.message);
         }
     } catch (error) {
         console.error('Error loading dashboard stats:', error);
+    } finally {
+        hideLoading('dashboardStats');
     }
 }
 
-function renderDashboardStats(stats) {
-    // Update stats displays
-    const pendingEl = document.getElementById('pendingCount');
-    if (pendingEl) pendingEl.textContent = stats.pending_validations;
+function updateDashboardDisplay(stats) {
+    // Update AI Performance Metrics
+    const modelAccuracy = document.getElementById('modelAccuracy');
+    if (modelAccuracy) {
+        modelAccuracy.textContent = `${(stats.model_accuracy * 100).toFixed(1)}%`;
+    }
     
-    const trainingSamplesEl = document.getElementById('trainingSamples');
-    if (trainingSamplesEl) trainingSamplesEl.textContent = stats.training_samples;
+    const totalPredictions = document.getElementById('totalPredictions');
+    if (totalPredictions) {
+        totalPredictions.textContent = stats.total_predictions || 0;
+    }
+    
+    const correctPredictions = document.getElementById('correctPredictions');
+    if (correctPredictions) {
+        correctPredictions.textContent = stats.correct_predictions || 0;
+    }
+    
+    // Update Risk Distribution
+    const lowRiskCount = document.getElementById('lowRiskCount');
+    if (lowRiskCount) {
+        lowRiskCount.textContent = stats.low_risk_reports || 0;
+    }
+    
+    const mediumRiskCount = document.getElementById('mediumRiskCount');
+    if (mediumRiskCount) {
+        mediumRiskCount.textContent = stats.medium_risk_reports || 0;
+    }
+    
+    const highRiskCount = document.getElementById('highRiskCount');
+    if (highRiskCount) {
+        highRiskCount.textContent = stats.high_risk_reports || 0;
+    }
+    
+    // Update Training Progress
+    updateTrainingProgress(stats);
+    
+    console.log('Dashboard stats updated with real data:', stats);
+}
+
+function updateTrainingProgress(stats) {
+    // Update training data progress bar
+    const trainingDataProgressBar = document.getElementById('trainingDataProgress');
+    if (trainingDataProgressBar) {
+        const progressPercentage = Math.min(100, (stats.total_training_samples / 100) * 100);
+        trainingDataProgressBar.style.width = `${progressPercentage}%`;
+    }
+    
+    // Update training data progress text
+    const trainingDataText = document.getElementById('trainingDataText');
+    if (trainingDataText) {
+        trainingDataText.textContent = `${stats.total_training_samples}/100 samples`;
+    }
+    
+    // Update model training progress bar
+    const modelTrainingProgressBar = document.getElementById('modelTrainingProgress');
+    if (modelTrainingProgressBar) {
+        const epochsProgress = Math.min(100, (stats.model_epochs / 100) * 100);
+        modelTrainingProgressBar.style.width = `${epochsProgress}%`;
+    }
+    
+    // Update model epochs text
+    const modelTrainingText = document.getElementById('modelTrainingText');
+    if (modelTrainingText) {
+        modelTrainingText.textContent = `${stats.model_epochs} epochs completed`;
+    }
 }
 
 // File Upload Management
 function setupFileUploads() {
-    // Image upload area click handler
+    console.log('Setting up file uploads...');
+    
+    // Simple direct approach
+    document.addEventListener('DOMContentLoaded', function() {
+        initFileUpload();
+    });
+    
+    // Also try immediately in case DOMContentLoaded already fired
+    initFileUpload();
+}
+
+function initFileUpload() {
+    console.log('Initializing file upload...');
+    
     const imageUploadArea = document.getElementById('imageUploadArea');
     const imageUpload = document.getElementById('imageUpload');
+    
+    console.log('Found upload area:', !!imageUploadArea);
+    console.log('Found upload input:', !!imageUpload);
+    
     if (imageUploadArea && imageUpload) {
-        imageUploadArea.addEventListener('click', () => {
-            imageUpload.click();
-        });
-        imageUpload.addEventListener('change', handleImageUpload);
+        console.log('Setting up click handler...');
         
-        // Drag and drop handlers
+        // Clear any existing handlers
+        imageUploadArea.onclick = null;
+        
+        // Simple click handler
+        imageUploadArea.onclick = function(event) {
+            console.log('Upload area clicked!');
+            event.preventDefault();
+            event.stopPropagation();
+            
+            try {
+                console.log('About to trigger file input...');
+                imageUpload.click();
+                console.log('File input triggered successfully');
+            } catch (error) {
+                console.error('Error triggering file input:', error);
+            }
+        };
+        
+        // File change handler
+        imageUpload.onchange = function(event) {
+            console.log('File input changed, files:', event.target.files.length);
+            handleImageUpload(event);
+        };
+        
+        // Make sure the area is clickable
+        imageUploadArea.style.cursor = 'pointer';
+        imageUploadArea.style.pointerEvents = 'auto';
+        
+        console.log('File upload setup complete');
+        
+        // Setup drag and drop
         setupDragAndDrop(imageUploadArea, imageUpload);
+    } else {
+        console.error('Could not find upload elements');
+        // Try again after a short delay
+        setTimeout(initFileUpload, 500);
     }
     
     // Risk category selection
@@ -499,7 +650,7 @@ async function handleRiskBasedUpload() {
         const data = await response.json();
         
         if (data.success) {
-            showNotification(`${imageUpload.files.length} gambar berhasil dikategorikan sebagai ${riskLevel} RISK`, 'success');
+            showNotification(`${data.uploaded_count || imageUpload.files.length} gambar berhasil disimpan ke database sebagai ${riskLevel} RISK`, 'success');
             
             // Reset form
             imageUpload.value = '';
@@ -511,8 +662,12 @@ async function handleRiskBasedUpload() {
             const uploadArea = document.getElementById('imageUploadArea');
             uploadArea.querySelector('p').textContent = 'Seret & lepas gambar di sini atau pilih file';
             
-            // Reload stats
-            loadTrainingStats();
+            // Reload all relevant data
+            loadTrainingStats(); // Update stats
+            loadTrainingData(); // Update training data table
+            loadDashboardStats(); // Update dashboard metrics
+            
+            console.log('Upload successful:', data.message);
             
             // Show auto-training notification
             setTimeout(() => {
@@ -533,13 +688,154 @@ async function loadTrainingStats() {
         const response = await fetch(`${API_BASE}/admin/training-stats`);
         const data = await response.json();
         
-        if (data.success) {
+        if (data.success && data.stats) {
+            // Update individual risk counters for upload tab
             document.getElementById('lowRiskCount').textContent = data.stats.low_risk || 0;
             document.getElementById('mediumRiskCount').textContent = data.stats.medium_risk || 0;
             document.getElementById('highRiskCount').textContent = data.stats.high_risk || 0;
+            
+            console.log('Training stats loaded from database:', data.stats);
+        } else {
+            console.error('Failed to load training stats:', data.message);
         }
     } catch (error) {
         console.error('Error loading training stats:', error);
+    }
+}
+
+// Training Data Management Functions
+async function loadTrainingData() {
+    try {
+        showLoading('loadingTraining');
+        
+        // Get filter values
+        const validationFilter = document.getElementById('validationFilter')?.value || '';
+        const riskFilter = document.getElementById('riskFilter')?.value || '';
+        
+        // Build query params
+        const params = new URLSearchParams();
+        if (validationFilter) params.append('status', validationFilter);
+        if (riskFilter) params.append('risk_level', riskFilter);
+        
+        const response = await fetch(`${API_BASE}/admin/training-data?${params.toString()}`);
+        const data = await response.json();
+        
+        if (data.success) {
+            updateTrainingStats(data.stats);
+            renderTrainingDataTable(data.datasets);
+            console.log('Training data loaded from database:', data.datasets.length, 'records');
+        } else {
+            showError('datasetTableBody', 'Gagal memuat data training: ' + (data.message || 'Unknown error'));
+        }
+    } catch (error) {
+        console.error('Error loading training data:', error);
+        showError('datasetTableBody', 'Error saat memuat data training: ' + error.message);
+    } finally {
+        hideLoading('loadingTraining');
+    }
+}
+
+function updateTrainingStats(stats) {
+    document.getElementById('totalDataset').textContent = stats.total_dataset || 0;
+    document.getElementById('validatedData').textContent = stats.validated_data || 0;
+    document.getElementById('pendingData').textContent = stats.pending_data || 0;
+}
+
+function renderTrainingDataTable(datasets) {
+    const tableBody = document.getElementById('datasetTableBody');
+    if (!tableBody) return;
+    
+    if (!datasets || datasets.length === 0) {
+        tableBody.innerHTML = `
+            <tr>
+                <td colspan="6" class="empty-state">
+                    <i class="fas fa-database fa-2x"></i>
+                    <p>Tidak ada data training yang tersedia</p>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    tableBody.innerHTML = datasets.map(dataset => `
+        <tr>
+            <td>
+                ${dataset.image_path ? 
+                    `<img src="/${dataset.image_path}" alt="Dataset" class="dataset-thumbnail" style="width: 60px; height: 60px; object-fit: cover; border-radius: 4px;">` :
+                    '<i class="fas fa-image"></i>'
+                }
+            </td>
+            <td>${dataset.filename || 'Unknown'}</td>
+            <td>
+                <span class="risk-badge risk-${dataset.risk_level?.toLowerCase() || 'unknown'}">
+                    ${dataset.risk_level || 'Unknown'}
+                </span>
+            </td>
+            <td>
+                <span class="status-badge status-${dataset.validation_status?.toLowerCase() || 'pending'}">
+                    ${dataset.validation_status || 'Pending'}
+                </span>
+            </td>
+            <td>${formatDate(dataset.upload_date)}</td>
+            <td>
+                <div class="action-buttons">
+                    <button class="btn btn-sm btn-primary" onclick="viewDataset('${dataset.id}')">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="btn btn-sm btn-warning" onclick="editDataset('${dataset.id}')">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteDataset('${dataset.id}')">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function formatDate(dateString) {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('id-ID', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+}
+
+async function viewDataset(datasetId) {
+    // Implementation for viewing dataset details
+    console.log('Viewing dataset:', datasetId);
+}
+
+async function editDataset(datasetId) {
+    // Implementation for editing dataset
+    console.log('Editing dataset:', datasetId);
+}
+
+async function deleteDataset(datasetId) {
+    if (confirm('Apakah Anda yakin ingin menghapus dataset ini?')) {
+        try {
+            const response = await fetch(`${API_BASE}/admin/training-data/${datasetId}`, {
+                method: 'DELETE'
+            });
+            
+            const data = await response.json();
+            
+            if (response.ok && data.success) {
+                showNotification('Dataset berhasil dihapus', 'success');
+                loadTrainingData(); // Reload the table
+                loadTrainingStats(); // Reload stats
+            } else {
+                showNotification('Gagal menghapus dataset: ' + (data.message || 'Unknown error'), 'error');
+            }
+        } catch (error) {
+            console.error('Error deleting dataset:', error);
+            showNotification('Error saat menghapus dataset: ' + error.message, 'error');
+        }
     }
 }
 

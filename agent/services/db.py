@@ -115,6 +115,40 @@ class DatabaseService:
             logger.error(f"Query execution failed: {e}")
             return []
     
+    def fetch_all(self, query: str, params=None) -> List[tuple]:
+        """Execute SELECT query dan return semua hasil sebagai list of tuples"""
+        try:
+            with self.get_session() as session:
+                if params:
+                    # Ensure params is a dict for named parameters
+                    if isinstance(params, (list, tuple)):
+                        result = session.execute(text(query), list(params))
+                    else:
+                        result = session.execute(text(query), params)
+                else:
+                    result = session.execute(text(query))
+                return result.fetchall()
+        except SQLAlchemyError as e:
+            logger.error(f"Fetch all failed: {e}")
+            return []
+    
+    def fetch_one(self, query: str, params=None) -> Optional[tuple]:
+        """Execute SELECT query dan return satu hasil sebagai tuple"""
+        try:
+            with self.get_session() as session:
+                if params:
+                    # Ensure params is a dict for named parameters
+                    if isinstance(params, (list, tuple)):
+                        result = session.execute(text(query), list(params))
+                    else:
+                        result = session.execute(text(query), params)
+                else:
+                    result = session.execute(text(query))
+                return result.fetchone()
+        except SQLAlchemyError as e:
+            logger.error(f"Fetch one failed: {e}")
+            return None
+    
     def execute_insert(self, query: str, params: Dict = None) -> Optional[int]:
         """Execute INSERT query dan return last insert ID"""
         try:

@@ -165,3 +165,200 @@
 2025-08-22 23:29:06 | INFO | admin_validation_endpoints | Report 6 approved and added to training data
 2025-08-22 23:29:26 | INFO | scheduler | Updated maintenance priority to LOW for asset 1
 2025-08-22 23:29:26 | INFO | admin_validation_endpoints | Report 5 approved and added to training data
+2025-08-23 09:47:43 | INFO | admin_endpoints | Uploaded training image: 20250823_094743_High risk pipe.JPG as HIGH risk
+2025-08-23 09:47:43 | INFO | admin_endpoints | Triggering auto-retrain after uploading 1 images
+2025-08-23 09:47:57 | INFO | admin_endpoints | Uploaded training image: 20250823_094757_High risk.JPG as HIGH risk
+2025-08-23 09:47:57 | INFO | admin_endpoints | Triggering auto-retrain after uploading 1 images
+2025-08-23 09:48:11 | INFO | admin_endpoints | Uploaded training image: 20250823_094811_pipe corrosion.JPG as MEDIUM risk
+2025-08-23 09:48:11 | INFO | admin_endpoints | Triggering auto-retrain after uploading 1 images
+2025-08-23 09:57:56 | INFO | main | 🛑 Shutting down CAKEP.id EWS AI Module...
+2025-08-23 09:57:56 | INFO | main | ℹ️ Database service cleanup not required
+2025-08-23 09:57:56 | INFO | main | 👋 CAKEP.id EWS AI Module shutdown completed!
+2025-08-23 09:59:25 | INFO | main | ✅ Database connection established
+2025-08-23 09:59:25 | INFO | main | 🔧 Testing services...
+2025-08-23 09:59:33 | INFO | main | ✅ YOLO service ready
+2025-08-23 09:59:33 | INFO | main | ✅ Groq AI service ready
+2025-08-23 09:59:33 | INFO | risk_engine | Starting risk aggregation for report 1
+2025-08-23 09:59:34 | INFO | groq_service | Groq client initialized successfully
+2025-08-23 09:59:34 | WARNING | risk_engine | Groq procedure generation failed, using fallback template
+2025-08-23 09:59:34 | INFO | risk_engine | Risk aggregation completed: LOW risk (score: 0.444)
+2025-08-23 09:59:34 | INFO | main | ✅ Risk Engine ready
+2025-08-23 09:59:34 | INFO | main | 🎯 CAKEP.id EWS AI Module startup completed!
+2025-08-23 10:12:47 | INFO | main | ✅ Database connection established
+2025-08-23 10:12:47 | INFO | main | 🔧 Testing services...
+2025-08-23 10:12:51 | INFO | main | ✅ YOLO service ready
+2025-08-23 10:12:51 | INFO | main | ✅ Groq AI service ready
+2025-08-23 10:12:51 | INFO | risk_engine | Starting risk aggregation for report 1
+2025-08-23 10:12:55 | INFO | groq_service | Groq client initialized successfully
+2025-08-23 10:12:55 | WARNING | risk_engine | Groq procedure generation failed, using fallback template
+2025-08-23 10:12:55 | INFO | risk_engine | Risk aggregation completed: LOW risk (score: 0.444)
+2025-08-23 10:12:55 | INFO | main | ✅ Risk Engine ready
+2025-08-23 10:12:55 | INFO | main | 🎯 CAKEP.id EWS AI Module startup completed!
+2025-08-23 10:14:23 | INFO | main | 🛑 Shutting down CAKEP.id EWS AI Module...
+2025-08-23 10:14:23 | INFO | main | ℹ️ Database service cleanup not required
+2025-08-23 10:14:23 | INFO | main | 👋 CAKEP.id EWS AI Module shutdown completed!
+2025-08-23 10:18:23 | INFO | main | 🛑 Shutting down CAKEP.id EWS AI Module...
+2025-08-23 10:18:23 | INFO | main | ℹ️ Database service cleanup not required
+2025-08-23 10:18:23 | INFO | main | 👋 CAKEP.id EWS AI Module shutdown completed!
+2025-08-23 10:18:46 | INFO | main | ✅ Database connection established
+2025-08-23 10:18:46 | INFO | main | 🔧 Testing services...
+2025-08-23 10:18:47 | INFO | main | ✅ YOLO service ready
+2025-08-23 10:18:48 | INFO | main | ✅ Groq AI service ready
+2025-08-23 10:18:48 | INFO | risk_engine | Starting risk aggregation for report 1
+2025-08-23 10:18:48 | INFO | groq_service | Groq client initialized successfully
+2025-08-23 10:18:48 | WARNING | risk_engine | Groq procedure generation failed, using fallback template
+2025-08-23 10:18:48 | INFO | risk_engine | Risk aggregation completed: LOW risk (score: 0.444)
+2025-08-23 10:18:48 | INFO | main | ✅ Risk Engine ready
+2025-08-23 10:18:48 | INFO | main | 🎯 CAKEP.id EWS AI Module startup completed!
+2025-08-23 10:18:56 | INFO | main | 🛑 Shutting down CAKEP.id EWS AI Module...
+2025-08-23 10:18:56 | INFO | main | ℹ️ Database service cleanup not required
+2025-08-23 10:18:56 | INFO | main | 👋 CAKEP.id EWS AI Module shutdown completed!
+2025-08-23 10:19:14 | INFO | main | ✅ Database connection established
+2025-08-23 10:19:14 | INFO | main | 🔧 Testing services...
+2025-08-23 10:19:15 | INFO | main | ✅ YOLO service ready
+2025-08-23 10:19:15 | INFO | main | ✅ Groq AI service ready
+2025-08-23 10:19:15 | INFO | risk_engine | Starting risk aggregation for report 1
+2025-08-23 10:19:16 | INFO | groq_service | Groq client initialized successfully
+2025-08-23 10:19:16 | WARNING | risk_engine | Groq procedure generation failed, using fallback template
+2025-08-23 10:19:16 | INFO | risk_engine | Risk aggregation completed: LOW risk (score: 0.444)
+2025-08-23 10:19:16 | INFO | main | ✅ Risk Engine ready
+2025-08-23 10:19:16 | INFO | main | 🎯 CAKEP.id EWS AI Module startup completed!
+2025-08-23 10:19:36 | INFO | main | 🛑 Shutting down CAKEP.id EWS AI Module...
+2025-08-23 10:19:36 | INFO | main | ℹ️ Database service cleanup not required
+2025-08-23 10:19:36 | INFO | main | 👋 CAKEP.id EWS AI Module shutdown completed!
+2025-08-23 10:19:59 | INFO | main | ✅ Database connection established
+2025-08-23 10:19:59 | INFO | main | 🔧 Testing services...
+2025-08-23 10:20:01 | INFO | main | ✅ YOLO service ready
+2025-08-23 10:20:01 | INFO | main | ✅ Groq AI service ready
+2025-08-23 10:20:01 | INFO | risk_engine | Starting risk aggregation for report 1
+2025-08-23 10:20:02 | INFO | groq_service | Groq client initialized successfully
+2025-08-23 10:20:02 | WARNING | risk_engine | Groq procedure generation failed, using fallback template
+2025-08-23 10:20:02 | INFO | risk_engine | Risk aggregation completed: LOW risk (score: 0.444)
+2025-08-23 10:20:02 | INFO | main | ✅ Risk Engine ready
+2025-08-23 10:20:02 | INFO | main | 🎯 CAKEP.id EWS AI Module startup completed!
+2025-08-23 10:20:02 | ERROR | admin_endpoints | Failed to get dashboard stats: 'DatabaseService' object has no attribute 'fetch_one'
+2025-08-23 10:20:02 | ERROR | admin_endpoints | Failed to get dashboard stats: 'DatabaseService' object has no attribute 'fetch_one'
+2025-08-23 10:20:11 | INFO | main | 🛑 Shutting down CAKEP.id EWS AI Module...
+2025-08-23 10:20:11 | INFO | main | ℹ️ Database service cleanup not required
+2025-08-23 10:20:11 | INFO | main | 👋 CAKEP.id EWS AI Module shutdown completed!
+2025-08-23 10:24:01 | INFO | main | ✅ Database connection established
+2025-08-23 10:24:01 | INFO | main | 🔧 Testing services...
+2025-08-23 10:24:03 | INFO | main | ✅ YOLO service ready
+2025-08-23 10:24:04 | INFO | main | ✅ Groq AI service ready
+2025-08-23 10:24:04 | INFO | risk_engine | Starting risk aggregation for report 1
+2025-08-23 10:24:05 | INFO | groq_service | Groq client initialized successfully
+2025-08-23 10:24:05 | WARNING | risk_engine | Groq procedure generation failed, using fallback template
+2025-08-23 10:24:05 | INFO | risk_engine | Risk aggregation completed: LOW risk (score: 0.444)
+2025-08-23 10:24:05 | INFO | main | ✅ Risk Engine ready
+2025-08-23 10:24:05 | INFO | main | 🎯 CAKEP.id EWS AI Module startup completed!
+2025-08-23 10:24:09 | ERROR | admin_endpoints | Failed to get dashboard stats: 'DatabaseService' object has no attribute 'fetch_one'
+2025-08-23 10:24:26 | INFO | main | 🛑 Shutting down CAKEP.id EWS AI Module...
+2025-08-23 10:24:26 | INFO | main | ℹ️ Database service cleanup not required
+2025-08-23 10:24:26 | INFO | main | 👋 CAKEP.id EWS AI Module shutdown completed!
+2025-08-23 10:24:59 | INFO | main | ✅ Database connection established
+2025-08-23 10:24:59 | INFO | main | 🔧 Testing services...
+2025-08-23 10:25:02 | INFO | main | ✅ YOLO service ready
+2025-08-23 10:25:03 | INFO | main | ✅ Groq AI service ready
+2025-08-23 10:25:03 | INFO | risk_engine | Starting risk aggregation for report 1
+2025-08-23 10:25:04 | INFO | groq_service | Groq client initialized successfully
+2025-08-23 10:25:04 | WARNING | risk_engine | Groq procedure generation failed, using fallback template
+2025-08-23 10:25:04 | INFO | risk_engine | Risk aggregation completed: LOW risk (score: 0.444)
+2025-08-23 10:25:04 | INFO | main | ✅ Risk Engine ready
+2025-08-23 10:25:04 | INFO | main | 🎯 CAKEP.id EWS AI Module startup completed!
+2025-08-23 10:25:04 | ERROR | admin_endpoints | Failed to get dashboard stats: 'DatabaseService' object has no attribute 'fetch_one'
+2025-08-23 10:25:04 | ERROR | admin_endpoints | Failed to get dashboard stats: 'DatabaseService' object has no attribute 'fetch_one'
+2025-08-23 10:25:04 | ERROR | admin_endpoints | Failed to get dashboard stats: 'DatabaseService' object has no attribute 'fetch_one'
+2025-08-23 10:25:04 | ERROR | admin_endpoints | Failed to get training data: 'DatabaseService' object has no attribute 'fetch_all'
+2025-08-23 10:25:56 | ERROR | admin_endpoints | Failed to get dashboard stats: 'DatabaseService' object has no attribute 'fetch_one'
+2025-08-23 10:26:14 | INFO | main | 🛑 Shutting down CAKEP.id EWS AI Module...
+2025-08-23 10:26:14 | INFO | main | ℹ️ Database service cleanup not required
+2025-08-23 10:26:14 | INFO | main | 👋 CAKEP.id EWS AI Module shutdown completed!
+2025-08-23 10:27:10 | INFO | main | ✅ Database connection established
+2025-08-23 10:27:10 | INFO | main | 🔧 Testing services...
+2025-08-23 10:27:13 | INFO | main | ✅ YOLO service ready
+2025-08-23 10:27:13 | INFO | main | ✅ Groq AI service ready
+2025-08-23 10:27:13 | INFO | risk_engine | Starting risk aggregation for report 1
+2025-08-23 10:27:15 | INFO | groq_service | Groq client initialized successfully
+2025-08-23 10:27:15 | WARNING | risk_engine | Groq procedure generation failed, using fallback template
+2025-08-23 10:27:15 | INFO | risk_engine | Risk aggregation completed: LOW risk (score: 0.444)
+2025-08-23 10:27:15 | INFO | main | ✅ Risk Engine ready
+2025-08-23 10:27:15 | INFO | main | 🎯 CAKEP.id EWS AI Module startup completed!
+2025-08-23 10:27:19 | ERROR | admin_endpoints | Failed to get dashboard stats: 'DatabaseService' object has no attribute 'fetch_one'
+2025-08-23 10:27:25 | ERROR | admin_endpoints | Failed to get dashboard stats: 'DatabaseService' object has no attribute 'fetch_one'
+2025-08-23 10:27:36 | ERROR | admin_endpoints | Failed to get training data: 'DatabaseService' object has no attribute 'fetch_all'
+2025-08-23 10:27:49 | ERROR | admin_endpoints | Failed to get dashboard stats: 'DatabaseService' object has no attribute 'fetch_one'
+2025-08-23 10:28:21 | ERROR | admin_endpoints | Failed to get dashboard stats: 'DatabaseService' object has no attribute 'fetch_one'
+2025-08-23 10:28:50 | ERROR | admin_endpoints | Failed to get dashboard stats: 'DatabaseService' object has no attribute 'fetch_one'
+2025-08-23 10:29:15 | INFO | main | 🛑 Shutting down CAKEP.id EWS AI Module...
+2025-08-23 10:29:15 | INFO | main | ℹ️ Database service cleanup not required
+2025-08-23 10:29:15 | INFO | main | 👋 CAKEP.id EWS AI Module shutdown completed!
+2025-08-23 10:32:15 | INFO | main | ✅ Database connection established
+2025-08-23 10:32:15 | INFO | main | 🔧 Testing services...
+2025-08-23 10:32:18 | INFO | main | ✅ YOLO service ready
+2025-08-23 10:32:18 | INFO | main | ✅ Groq AI service ready
+2025-08-23 10:32:18 | INFO | risk_engine | Starting risk aggregation for report 1
+2025-08-23 10:32:19 | INFO | groq_service | Groq client initialized successfully
+2025-08-23 10:32:19 | WARNING | risk_engine | Groq procedure generation failed, using fallback template
+2025-08-23 10:32:19 | INFO | risk_engine | Risk aggregation completed: LOW risk (score: 0.444)
+2025-08-23 10:32:19 | INFO | main | ✅ Risk Engine ready
+2025-08-23 10:32:19 | INFO | main | 🎯 CAKEP.id EWS AI Module startup completed!
+2025-08-23 10:33:20 | INFO | main | ✅ Database connection established
+2025-08-23 10:33:20 | INFO | main | 🔧 Testing services...
+2025-08-23 10:33:23 | INFO | main | ✅ YOLO service ready
+2025-08-23 10:33:23 | INFO | main | ✅ Groq AI service ready
+2025-08-23 10:33:23 | INFO | risk_engine | Starting risk aggregation for report 1
+2025-08-23 10:33:24 | INFO | groq_service | Groq client initialized successfully
+2025-08-23 10:33:24 | WARNING | risk_engine | Groq procedure generation failed, using fallback template
+2025-08-23 10:33:24 | INFO | risk_engine | Risk aggregation completed: LOW risk (score: 0.444)
+2025-08-23 10:33:24 | INFO | main | ✅ Risk Engine ready
+2025-08-23 10:33:24 | INFO | main | 🎯 CAKEP.id EWS AI Module startup completed!
+2025-08-23 10:37:12 | INFO | main | ✅ Database connection established
+2025-08-23 10:37:12 | INFO | main | 🔧 Testing services...
+2025-08-23 10:37:14 | INFO | main | ✅ YOLO service ready
+2025-08-23 10:37:15 | INFO | main | ✅ Groq AI service ready
+2025-08-23 10:37:15 | INFO | risk_engine | Starting risk aggregation for report 1
+2025-08-23 10:37:15 | INFO | groq_service | Groq client initialized successfully
+2025-08-23 10:37:15 | WARNING | risk_engine | Groq procedure generation failed, using fallback template
+2025-08-23 10:37:15 | INFO | risk_engine | Risk aggregation completed: LOW risk (score: 0.444)
+2025-08-23 10:37:15 | INFO | main | ✅ Risk Engine ready
+2025-08-23 10:37:15 | INFO | main | 🎯 CAKEP.id EWS AI Module startup completed!
+2025-08-23 10:39:19 | INFO | main | 🛑 Shutting down CAKEP.id EWS AI Module...
+2025-08-23 10:39:19 | INFO | main | ℹ️ Database service cleanup not required
+2025-08-23 10:39:19 | INFO | main | 👋 CAKEP.id EWS AI Module shutdown completed!
+2025-08-23 10:39:28 | INFO | main | 🛑 Shutting down CAKEP.id EWS AI Module...
+2025-08-23 10:39:28 | INFO | main | ℹ️ Database service cleanup not required
+2025-08-23 10:39:28 | INFO | main | 👋 CAKEP.id EWS AI Module shutdown completed!
+2025-08-23 10:40:15 | INFO | main | ✅ Database connection established
+2025-08-23 10:40:15 | INFO | main | 🔧 Testing services...
+2025-08-23 10:40:17 | INFO | main | ✅ YOLO service ready
+2025-08-23 10:40:17 | INFO | main | ✅ Groq AI service ready
+2025-08-23 10:40:17 | INFO | risk_engine | Starting risk aggregation for report 1
+2025-08-23 10:40:18 | INFO | groq_service | Groq client initialized successfully
+2025-08-23 10:40:18 | WARNING | risk_engine | Groq procedure generation failed, using fallback template
+2025-08-23 10:40:18 | INFO | risk_engine | Risk aggregation completed: LOW risk (score: 0.444)
+2025-08-23 10:40:18 | INFO | main | ✅ Risk Engine ready
+2025-08-23 10:40:18 | INFO | main | 🎯 CAKEP.id EWS AI Module startup completed!
+2025-08-23 11:51:33 | ERROR | db | Database session error: List argument must consist only of tuples or dictionaries
+2025-08-23 11:51:33 | ERROR | db | Fetch all failed: List argument must consist only of tuples or dictionaries
+2025-08-23 12:23:37 | ERROR | db | Database session error: List argument must consist only of tuples or dictionaries
+2025-08-23 12:23:37 | ERROR | db | Fetch all failed: List argument must consist only of tuples or dictionaries
+2025-08-23 12:23:42 | ERROR | db | Database session error: List argument must consist only of tuples or dictionaries
+2025-08-23 12:23:42 | ERROR | db | Fetch all failed: List argument must consist only of tuples or dictionaries
+2025-08-23 12:23:48 | INFO | main | 🛑 Shutting down CAKEP.id EWS AI Module...
+2025-08-23 12:23:48 | INFO | main | ℹ️ Database service cleanup not required
+2025-08-23 12:23:48 | INFO | main | 👋 CAKEP.id EWS AI Module shutdown completed!
+2025-08-23 12:24:44 | INFO | main | ✅ Database connection established
+2025-08-23 12:24:44 | INFO | main | 🔧 Testing services...
+2025-08-23 12:24:44 | WARNING | main | ⚠️ YOLO service issues
+2025-08-23 12:24:45 | INFO | main | ✅ Groq AI service ready
+2025-08-23 12:24:45 | INFO | risk_engine | Starting risk aggregation for report 1
+2025-08-23 12:24:45 | INFO | groq_service | Groq client initialized successfully
+2025-08-23 12:24:45 | WARNING | risk_engine | Groq procedure generation failed, using fallback template
+2025-08-23 12:24:45 | INFO | risk_engine | Risk aggregation completed: LOW risk (score: 0.444)
+2025-08-23 12:24:45 | INFO | main | ✅ Risk Engine ready
+2025-08-23 12:24:45 | INFO | main | 🎯 CAKEP.id EWS AI Module startup completed!
+2025-08-23 12:25:01 | ERROR | db | Database session error: List argument must consist only of tuples or dictionaries
+2025-08-23 12:25:01 | ERROR | db | Fetch all failed: List argument must consist only of tuples or dictionaries
+2025-08-23 12:27:48 | INFO | main | 🛑 Shutting down CAKEP.id EWS AI Module...
+2025-08-23 12:27:49 | INFO | main | ℹ️ Database service cleanup not required
+2025-08-23 12:27:49 | INFO | main | 👋 CAKEP.id EWS AI Module shutdown completed!
