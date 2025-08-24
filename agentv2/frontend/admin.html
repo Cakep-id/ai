@@ -1,0 +1,1461 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgentV2 Admin - Dashboard</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            color: white;
+            font-size: 1.8rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header .admin-badge {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 80px;
+            width: 250px;
+            height: calc(100vh - 80px);
+            background: rgba(52, 73, 94, 0.95);
+            backdrop-filter: blur(10px);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            overflow-y: auto;
+            z-index: 1000;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 1rem 0;
+        }
+
+        .sidebar-menu li {
+            margin: 0.5rem 0;
+        }
+
+        .sidebar-menu a {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem 1.5rem;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+        }
+
+        .sidebar-menu a:hover,
+        .sidebar-menu a.active {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border-left-color: #3498db;
+        }
+
+        .main-content {
+            margin-left: 250px;
+            padding: 2rem;
+            min-height: calc(100vh - 80px);
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .stat-card {
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #3498db, #2980b9);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #2c3e50;
+            margin: 0.5rem 0;
+        }
+
+        .stat-label {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stat-icon {
+            font-size: 2rem;
+            color: #3498db;
+            margin-bottom: 0.5rem;
+        }
+
+        .section-title {
+            color: white;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table th {
+            background: linear-gradient(135deg, #34495e, #2c3e50);
+            color: white;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .table td {
+            padding: 1rem;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        .table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-processing { background: #cce5ff; color: #0066cc; }
+        .status-completed { background: #d4edda; color: #155724; }
+        .status-failed { background: #f8d7da; color: #721c24; }
+        .status-approved { background: #d1ecf1; color: #0c5460; }
+        .status-rejected { background: #f5c6cb; color: #491217; }
+        .status-needs_review { background: #ffeaa7; color: #6c5700; }
+
+        .risk-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .risk-low { background: #d4edda; color: #155724; }
+        .risk-medium { background: #fff3cd; color: #856404; }
+        .risk-high { background: #f8d7da; color: #721c24; }
+        .risk-critical { background: #f5c6cb; color: #491217; }
+
+        .priority-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .priority-1 { background: #dc3545; color: white; }
+        .priority-2 { background: #fd7e14; color: white; }
+        .priority-3 { background: #ffc107; color: #212529; }
+        .priority-4 { background: #198754; color: white; }
+        .priority-5 { background: #6c757d; color: white; }
+
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #27ae60, #229954);
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #f39c12, #d68910);
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn-sm {
+            padding: 0.25rem 0.75rem;
+            font-size: 0.8rem;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-top: 1rem;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: white;
+            margin: 5% auto;
+            padding: 2rem;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        .close {
+            font-size: 2rem;
+            cursor: pointer;
+            color: #7f8c8d;
+        }
+
+        .close:hover {
+            color: #e74c3c;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #ecf0f1;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.5rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+            padding-right: 2.5rem;
+        }
+
+        .filter-bar {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .filter-group label {
+            color: white;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .filter-group select,
+        .filter-group input {
+            padding: 0.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.9);
+            font-size: 0.9rem;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: white;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 10px;
+            margin: 1rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+            
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+                padding: 1rem;
+            }
+            
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            
+            .header {
+                padding: 1rem;
+            }
+            
+            .header h1 {
+                font-size: 1.3rem;
+            }
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        .tab-content {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1><i class="fas fa-shield-alt"></i> AgentV2 Admin Dashboard</h1>
+        <div class="admin-badge">
+            <i class="fas fa-user-shield"></i>
+            Administrator
+        </div>
+    </div>
+
+    <div class="sidebar">
+        <ul class="sidebar-menu">
+            <li><a href="#" class="nav-link active" data-section="dashboard">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+            </a></li>
+            <li><a href="#" class="nav-link" data-section="reports">
+                <i class="fas fa-file-alt"></i> Reports Management
+            </a></li>
+            <li><a href="#" class="nav-link" data-section="validation">
+                <i class="fas fa-check-circle"></i> Validation Queue
+            </a></li>
+            <li><a href="#" class="nav-link" data-section="maintenance">
+                <i class="fas fa-tools"></i> Maintenance Schedule
+            </a></li>
+            <li><a href="#" class="nav-link" data-section="analytics">
+                <i class="fas fa-chart-line"></i> Analytics
+            </a></li>
+            <li><a href="#" class="nav-link" data-section="system">
+                <i class="fas fa-cog"></i> System Settings
+            </a></li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <!-- Dashboard Section -->
+        <section id="dashboard" class="section active">
+            <h2 class="section-title">
+                <i class="fas fa-tachometer-alt"></i>
+                Dashboard Overview
+            </h2>
+            
+            <div class="dashboard-grid">
+                <div class="card stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <div class="stat-number" id="totalReports">-</div>
+                    <div class="stat-label">Total Reports</div>
+                </div>
+                
+                <div class="card stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="stat-number" id="pendingReports">-</div>
+                    <div class="stat-label">Pending Validation</div>
+                </div>
+                
+                <div class="card stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="stat-number" id="criticalRisk">-</div>
+                    <div class="stat-label">Critical Risk</div>
+                </div>
+                
+                <div class="card stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-tools"></i>
+                    </div>
+                    <div class="stat-number" id="maintenanceItems">-</div>
+                    <div class="stat-label">Maintenance Due</div>
+                </div>
+            </div>
+
+            <div class="dashboard-grid">
+                <div class="card">
+                    <h3>Reports by Date</h3>
+                    <div class="chart-container">
+                        <canvas id="reportsChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h3>Risk Distribution</h3>
+                    <div class="chart-container">
+                        <canvas id="riskChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Recent Activity</h3>
+                <div id="recentActivity" class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading recent activity...</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Reports Management Section -->
+        <section id="reports" class="section">
+            <h2 class="section-title">
+                <i class="fas fa-file-alt"></i>
+                Reports Management
+            </h2>
+            
+            <div class="filter-bar">
+                <div class="filter-group">
+                    <label>Status</label>
+                    <select id="statusFilter">
+                        <option value="">All Status</option>
+                        <option value="pending">Pending</option>
+                        <option value="processing">Processing</option>
+                        <option value="completed">Completed</option>
+                        <option value="failed">Failed</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Validation</label>
+                    <select id="validationFilter">
+                        <option value="">All</option>
+                        <option value="pending">Pending</option>
+                        <option value="approved">Approved</option>
+                        <option value="rejected">Rejected</option>
+                        <option value="needs_review">Needs Review</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Date From</label>
+                    <input type="date" id="dateFromFilter">
+                </div>
+                <div class="filter-group">
+                    <label>Date To</label>
+                    <input type="date" id="dateToFilter">
+                </div>
+                <button class="btn btn-primary" onclick="filterReports()">
+                    <i class="fas fa-search"></i> Filter
+                </button>
+                <button class="btn btn-warning" onclick="clearFilters()">
+                    <i class="fas fa-times"></i> Clear
+                </button>
+            </div>
+
+            <div class="table-container">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Report ID</th>
+                            <th>User</th>
+                            <th>Asset Description</th>
+                            <th>Status</th>
+                            <th>Validation</th>
+                            <th>Risk Level</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reportsTableBody">
+                        <tr>
+                            <td colspan="8" class="loading">
+                                <div class="spinner"></div>
+                                Loading reports...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Validation Queue Section -->
+        <section id="validation" class="section">
+            <h2 class="section-title">
+                <i class="fas fa-check-circle"></i>
+                Validation Queue
+            </h2>
+            
+            <div class="card">
+                <h3>Reports Pending Validation</h3>
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Report ID</th>
+                                <th>Asset Description</th>
+                                <th>Detections</th>
+                                <th>Risk Score</th>
+                                <th>Submitted</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="validationTableBody">
+                            <tr>
+                                <td colspan="6" class="loading">
+                                    <div class="spinner"></div>
+                                    Loading validation queue...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Maintenance Schedule Section -->
+        <section id="maintenance" class="section">
+            <h2 class="section-title">
+                <i class="fas fa-tools"></i>
+                Maintenance Schedule
+            </h2>
+            
+            <div class="card">
+                <h3>Scheduled Maintenance</h3>
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Report ID</th>
+                                <th>Asset</th>
+                                <th>Type</th>
+                                <th>Priority</th>
+                                <th>Scheduled Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="maintenanceTableBody">
+                            <tr>
+                                <td colspan="7" class="loading">
+                                    <div class="spinner"></div>
+                                    Loading maintenance schedule...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Analytics Section -->
+        <section id="analytics" class="section">
+            <h2 class="section-title">
+                <i class="fas fa-chart-line"></i>
+                Analytics & Insights
+            </h2>
+            
+            <div class="dashboard-grid">
+                <div class="card">
+                    <h3>Model Performance</h3>
+                    <div class="chart-container">
+                        <canvas id="modelPerformanceChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h3>Damage Types Distribution</h3>
+                    <div class="chart-container">
+                        <canvas id="damageTypesChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Trend Analysis</h3>
+                <div class="chart-container">
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- System Settings Section -->
+        <section id="system" class="section">
+            <h2 class="section-title">
+                <i class="fas fa-cog"></i>
+                System Settings
+            </h2>
+            
+            <div class="card">
+                <h3>Configuration</h3>
+                <div class="form-group">
+                    <label>Default Confidence Threshold</label>
+                    <input type="number" class="form-control" id="confidenceThreshold" 
+                           step="0.01" min="0" max="1" value="0.5">
+                </div>
+                <div class="form-group">
+                    <label>Pixel to MM Ratio</label>
+                    <input type="number" class="form-control" id="pixelMmRatio" 
+                           step="0.1" min="0" value="1.0">
+                </div>
+                <div class="form-group">
+                    <label>Max File Size (MB)</label>
+                    <input type="number" class="form-control" id="maxFileSize" 
+                           min="1" max="100" value="10">
+                </div>
+                <button class="btn btn-success" onclick="saveSettings()">
+                    <i class="fas fa-save"></i> Save Settings
+                </button>
+            </div>
+
+            <div class="card">
+                <h3>System Status</h3>
+                <div id="systemStatus" class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading system status...</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Validation Modal -->
+    <div id="validationModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Validate Report</h3>
+                <span class="close" onclick="closeModal('validationModal')">&times;</span>
+            </div>
+            <div id="validationContent">
+                <!-- Content will be loaded dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Maintenance Update Modal -->
+    <div id="maintenanceModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Update Maintenance</h3>
+                <span class="close" onclick="closeModal('maintenanceModal')">&times;</span>
+            </div>
+            <div id="maintenanceContent">
+                <!-- Content will be loaded dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        const API_BASE = '/api';
+        let dashboardData = null;
+        let charts = {};
+
+        // Initialize application
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeNavigation();
+            loadDashboard();
+            setupFilters();
+            
+            // Auto-refresh every 30 seconds
+            setInterval(refreshCurrentSection, 30000);
+        });
+
+        // Navigation handling
+        function initializeNavigation() {
+            const navLinks = document.querySelectorAll('.nav-link');
+            
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // Remove active class from all links and sections
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+                    
+                    // Add active class to clicked link and corresponding section
+                    this.classList.add('active');
+                    const sectionId = this.dataset.section;
+                    document.getElementById(sectionId).classList.add('active');
+                    
+                    // Load section data
+                    loadSectionData(sectionId);
+                });
+            });
+        }
+
+        // Load section data
+        function loadSectionData(sectionId) {
+            switch(sectionId) {
+                case 'dashboard':
+                    loadDashboard();
+                    break;
+                case 'reports':
+                    loadReports();
+                    break;
+                case 'validation':
+                    loadValidationQueue();
+                    break;
+                case 'maintenance':
+                    loadMaintenanceSchedule();
+                    break;
+                case 'analytics':
+                    loadAnalytics();
+                    break;
+                case 'system':
+                    loadSystemSettings();
+                    break;
+            }
+        }
+
+        // Dashboard functions
+        async function loadDashboard() {
+            try {
+                const response = await fetch(`${API_BASE}/admin/dashboard`);
+                dashboardData = await response.json();
+                
+                updateDashboardStats(dashboardData);
+                createDashboardCharts(dashboardData);
+                displayRecentActivity(dashboardData.recent_reports);
+                
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+                showAlert('Error loading dashboard data', 'error');
+            }
+        }
+
+        function updateDashboardStats(data) {
+            document.getElementById('totalReports').textContent = 
+                data.dashboard_summary.reduce((sum, day) => sum + day.total_reports, 0);
+            
+            document.getElementById('pendingReports').textContent = 
+                data.recent_reports.filter(r => r.validation_status === 'pending').length;
+            
+            document.getElementById('criticalRisk').textContent = 
+                data.risk_distribution.find(r => r.risk_category === 'CRITICAL')?.count || 0;
+            
+            document.getElementById('maintenanceItems').textContent = 
+                data.recent_reports.filter(r => r.processing_status === 'completed').length;
+        }
+
+        function createDashboardCharts(data) {
+            // Reports by date chart
+            const reportsCtx = document.getElementById('reportsChart').getContext('2d');
+            if (charts.reportsChart) charts.reportsChart.destroy();
+            
+            charts.reportsChart = new Chart(reportsCtx, {
+                type: 'line',
+                data: {
+                    labels: data.dashboard_summary.map(d => new Date(d.report_date).toLocaleDateString()),
+                    datasets: [{
+                        label: 'Reports',
+                        data: data.dashboard_summary.map(d => d.total_reports),
+                        borderColor: '#3498db',
+                        backgroundColor: 'rgba(52, 152, 219, 0.1)',
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+
+            // Risk distribution chart
+            const riskCtx = document.getElementById('riskChart').getContext('2d');
+            if (charts.riskChart) charts.riskChart.destroy();
+            
+            charts.riskChart = new Chart(riskCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: data.risk_distribution.map(r => r.risk_category),
+                    datasets: [{
+                        data: data.risk_distribution.map(r => r.count),
+                        backgroundColor: ['#27ae60', '#f39c12', '#e74c3c', '#8e44ad']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
+
+        function displayRecentActivity(reports) {
+            const container = document.getElementById('recentActivity');
+            
+            if (!reports || reports.length === 0) {
+                container.innerHTML = '<p>No recent activity.</p>';
+                return;
+            }
+
+            const activityHtml = reports.slice(0, 10).map(report => `
+                <div class="report-item" style="margin: 0.5rem 0; padding: 1rem; background: #f8f9fa; border-radius: 8px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <strong>${report.report_id}</strong>
+                            <span class="status-badge status-${report.processing_status}">${report.processing_status}</span>
+                        </div>
+                        <small>${new Date(report.submission_date).toLocaleString()}</small>
+                    </div>
+                    <p style="margin: 0.5rem 0; color: #666;">${report.asset_description.substring(0, 100)}...</p>
+                </div>
+            `).join('');
+
+            container.innerHTML = activityHtml;
+        }
+
+        // Reports management
+        async function loadReports() {
+            try {
+                const response = await fetch(`${API_BASE}/user/reports?limit=100`);
+                const data = await response.json();
+                
+                displayReports(data.reports);
+                
+            } catch (error) {
+                console.error('Error loading reports:', error);
+                showAlert('Error loading reports', 'error');
+            }
+        }
+
+        function displayReports(reports) {
+            const tbody = document.getElementById('reportsTableBody');
+            
+            if (!reports || reports.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8">No reports found.</td></tr>';
+                return;
+            }
+
+            const reportsHtml = reports.map(report => `
+                <tr>
+                    <td><strong>${report.report_id}</strong></td>
+                    <td>${report.user_identifier || 'Anonymous'}</td>
+                    <td title="${report.asset_description}">${report.asset_description.substring(0, 50)}...</td>
+                    <td><span class="status-badge status-${report.processing_status}">${report.processing_status}</span></td>
+                    <td><span class="status-badge status-${report.validation_status}">${report.validation_status}</span></td>
+                    <td><span class="risk-badge risk-low">-</span></td>
+                    <td>${new Date(report.submission_date).toLocaleDateString()}</td>
+                    <td>
+                        <button class="btn btn-primary btn-sm" onclick="viewReport('${report.report_id}')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        ${report.validation_status === 'pending' ? 
+                            `<button class="btn btn-warning btn-sm" onclick="validateReport('${report.report_id}')">
+                                <i class="fas fa-check"></i>
+                            </button>` : ''
+                        }
+                    </td>
+                </tr>
+            `).join('');
+
+            tbody.innerHTML = reportsHtml;
+        }
+
+        // Validation queue
+        async function loadValidationQueue() {
+            try {
+                const response = await fetch(`${API_BASE}/admin/reports/pending`);
+                const data = await response.json();
+                
+                displayValidationQueue(data.reports);
+                
+            } catch (error) {
+                console.error('Error loading validation queue:', error);
+                showAlert('Error loading validation queue', 'error');
+            }
+        }
+
+        function displayValidationQueue(reports) {
+            const tbody = document.getElementById('validationTableBody');
+            
+            if (!reports || reports.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6">No reports pending validation.</td></tr>';
+                return;
+            }
+
+            const reportsHtml = reports.map(report => `
+                <tr>
+                    <td><strong>${report.report_id}</strong></td>
+                    <td title="${report.asset_description}">${report.asset_description.substring(0, 50)}...</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>${new Date(report.submission_date).toLocaleDateString()}</td>
+                    <td>
+                        <button class="btn btn-success btn-sm" onclick="approveReport('${report.report_id}')">
+                            <i class="fas fa-check"></i> Approve
+                        </button>
+                        <button class="btn btn-danger btn-sm" onclick="rejectReport('${report.report_id}')">
+                            <i class="fas fa-times"></i> Reject
+                        </button>
+                        <button class="btn btn-warning btn-sm" onclick="validateReport('${report.report_id}')">
+                            <i class="fas fa-edit"></i> Review
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+
+            tbody.innerHTML = reportsHtml;
+        }
+
+        // Maintenance schedule
+        async function loadMaintenanceSchedule() {
+            try {
+                const response = await fetch(`${API_BASE}/admin/maintenance/schedule`);
+                const data = await response.json();
+                
+                displayMaintenanceSchedule(data.maintenance_schedule);
+                
+            } catch (error) {
+                console.error('Error loading maintenance schedule:', error);
+                showAlert('Error loading maintenance schedule', 'error');
+            }
+        }
+
+        function displayMaintenanceSchedule(schedule) {
+            const tbody = document.getElementById('maintenanceTableBody');
+            
+            if (!schedule || schedule.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7">No maintenance scheduled.</td></tr>';
+                return;
+            }
+
+            const scheduleHtml = schedule.map(item => `
+                <tr>
+                    <td><strong>${item.report_id}</strong></td>
+                    <td title="${item.asset_description}">${item.asset_description?.substring(0, 30)}...</td>
+                    <td>${item.maintenance_type}</td>
+                    <td><span class="priority-badge priority-${item.priority_level}">P${item.priority_level}</span></td>
+                    <td>${new Date(item.scheduled_date).toLocaleDateString()}</td>
+                    <td><span class="status-badge status-${item.status}">${item.status}</span></td>
+                    <td>
+                        <button class="btn btn-primary btn-sm" onclick="updateMaintenance(${item.id})">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+
+            tbody.innerHTML = scheduleHtml;
+        }
+
+        // Analytics
+        async function loadAnalytics() {
+            // Placeholder for analytics implementation
+            console.log('Loading analytics...');
+        }
+
+        // System settings
+        async function loadSystemSettings() {
+            try {
+                // Load current settings
+                const configs = ['default_confidence_threshold', 'pixel_to_mm_ratio', 'max_file_size_mb'];
+                
+                for (const config of configs) {
+                    try {
+                        const response = await fetch(`${API_BASE}/system-config/${config}`);
+                        const data = await response.json();
+                        
+                        // Update UI with current values
+                        const elementMap = {
+                            'default_confidence_threshold': 'confidenceThreshold',
+                            'pixel_to_mm_ratio': 'pixelMmRatio',
+                            'max_file_size_mb': 'maxFileSize'
+                        };
+                        
+                        const element = document.getElementById(elementMap[config]);
+                        if (element) {
+                            element.value = data.value;
+                        }
+                    } catch (error) {
+                        console.warn(`Failed to load config ${config}:`, error);
+                    }
+                }
+                
+                // Load system status
+                loadSystemStatus();
+                
+            } catch (error) {
+                console.error('Error loading system settings:', error);
+            }
+        }
+
+        async function loadSystemStatus() {
+            try {
+                const response = await fetch(`${API_BASE}/health`);
+                const data = await response.json();
+                
+                const statusHtml = `
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="value" style="color: ${data.services.database === 'connected' ? '#27ae60' : '#e74c3c'};">
+                                ${data.services.database === 'connected' ? '✓' : '✗'}
+                            </span>
+                            <div class="label">Database</div>
+                        </div>
+                        <div class="info-item">
+                            <span class="value" style="color: ${data.services.yolo === 'loaded' ? '#27ae60' : '#e74c3c'};">
+                                ${data.services.yolo === 'loaded' ? '✓' : '✗'}
+                            </span>
+                            <div class="label">YOLO Model</div>
+                        </div>
+                        <div class="info-item">
+                            <span class="value" style="color: ${data.services.risk_engine === 'ready' ? '#27ae60' : '#e74c3c'};">
+                                ${data.services.risk_engine === 'ready' ? '✓' : '✗'}
+                            </span>
+                            <div class="label">Risk Engine</div>
+                        </div>
+                        <div class="info-item">
+                            <span class="value">${data.status}</span>
+                            <div class="label">System Status</div>
+                        </div>
+                    </div>
+                    <p><small>Last updated: ${new Date(data.timestamp).toLocaleString()}</small></p>
+                `;
+                
+                document.getElementById('systemStatus').innerHTML = statusHtml;
+                
+            } catch (error) {
+                document.getElementById('systemStatus').innerHTML = '<p>Error loading system status.</p>';
+            }
+        }
+
+        // Modal functions
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = 'block';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // Validation functions
+        async function validateReport(reportId) {
+            try {
+                const response = await fetch(`${API_BASE}/user/report/${reportId}`);
+                const data = await response.json();
+                
+                const content = `
+                    <div class="form-group">
+                        <label>Report ID</label>
+                        <input type="text" class="form-control" value="${reportId}" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label>Action</label>
+                        <select class="form-control select" id="validationAction">
+                            <option value="approve">Approve</option>
+                            <option value="reject">Reject</option>
+                            <option value="modify">Modify</option>
+                            <option value="request_review">Request Review</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Validator Notes</label>
+                        <textarea class="form-control textarea" id="validatorNotes" 
+                                 placeholder="Enter your validation notes..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Confidence Adjustment (0-1)</label>
+                        <input type="number" class="form-control" id="confidenceAdjustment" 
+                               step="0.01" min="0" max="1" value="1.0">
+                    </div>
+                    <button class="btn btn-success" onclick="submitValidation('${reportId}')">
+                        <i class="fas fa-check"></i> Submit Validation
+                    </button>
+                `;
+                
+                document.getElementById('validationContent').innerHTML = content;
+                openModal('validationModal');
+                
+            } catch (error) {
+                console.error('Error loading report for validation:', error);
+                showAlert('Error loading report details', 'error');
+            }
+        }
+
+        async function submitValidation(reportId) {
+            try {
+                const validationData = {
+                    validator_identifier: 'admin_user',
+                    action_type: document.getElementById('validationAction').value,
+                    validator_notes: document.getElementById('validatorNotes').value,
+                    confidence_adjustment: parseFloat(document.getElementById('confidenceAdjustment').value)
+                };
+                
+                const response = await fetch(`${API_BASE}/admin/validate/${reportId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(validationData)
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showAlert(result.message, 'success');
+                    closeModal('validationModal');
+                    refreshCurrentSection();
+                } else {
+                    throw new Error(result.message);
+                }
+                
+            } catch (error) {
+                console.error('Error submitting validation:', error);
+                showAlert('Error submitting validation', 'error');
+            }
+        }
+
+        async function approveReport(reportId) {
+            if (confirm('Are you sure you want to approve this report?')) {
+                try {
+                    const response = await fetch(`${API_BASE}/admin/validate/${reportId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            validator_identifier: 'admin_user',
+                            action_type: 'approve',
+                            validator_notes: 'Quick approval by admin'
+                        })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        showAlert('Report approved successfully', 'success');
+                        refreshCurrentSection();
+                    }
+                    
+                } catch (error) {
+                    console.error('Error approving report:', error);
+                    showAlert('Error approving report', 'error');
+                }
+            }
+        }
+
+        async function rejectReport(reportId) {
+            const reason = prompt('Please enter rejection reason:');
+            if (reason) {
+                try {
+                    const response = await fetch(`${API_BASE}/admin/validate/${reportId}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            validator_identifier: 'admin_user',
+                            action_type: 'reject',
+                            validator_notes: reason
+                        })
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        showAlert('Report rejected', 'success');
+                        refreshCurrentSection();
+                    }
+                    
+                } catch (error) {
+                    console.error('Error rejecting report:', error);
+                    showAlert('Error rejecting report', 'error');
+                }
+            }
+        }
+
+        // Maintenance functions
+        async function updateMaintenance(maintenanceId) {
+            const status = prompt('Enter new status (scheduled/in_progress/completed/cancelled):');
+            const notes = prompt('Enter completion notes (optional):');
+            
+            if (status) {
+                try {
+                    const formData = new FormData();
+                    formData.append('status', status);
+                    if (notes) formData.append('notes', notes);
+                    
+                    const response = await fetch(`${API_BASE}/admin/maintenance/${maintenanceId}`, {
+                        method: 'PUT',
+                        body: formData
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        showAlert('Maintenance updated successfully', 'success');
+                        loadMaintenanceSchedule();
+                    }
+                    
+                } catch (error) {
+                    console.error('Error updating maintenance:', error);
+                    showAlert('Error updating maintenance', 'error');
+                }
+            }
+        }
+
+        // Settings functions
+        async function saveSettings() {
+            try {
+                const settings = [
+                    { key: 'default_confidence_threshold', value: document.getElementById('confidenceThreshold').value, type: 'number' },
+                    { key: 'pixel_to_mm_ratio', value: document.getElementById('pixelMmRatio').value, type: 'number' },
+                    { key: 'max_file_size_mb', value: document.getElementById('maxFileSize').value, type: 'number' }
+                ];
+                
+                for (const setting of settings) {
+                    await fetch(`${API_BASE}/system-config/${setting.key}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            value: setting.value,
+                            data_type: setting.type,
+                            updated_by: 'admin_user'
+                        })
+                    });
+                }
+                
+                showAlert('Settings saved successfully', 'success');
+                
+            } catch (error) {
+                console.error('Error saving settings:', error);
+                showAlert('Error saving settings', 'error');
+            }
+        }
+
+        // Utility functions
+        function setupFilters() {
+            const today = new Date().toISOString().split('T')[0];
+            const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+            
+            document.getElementById('dateToFilter').value = today;
+            document.getElementById('dateFromFilter').value = weekAgo;
+        }
+
+        function filterReports() {
+            // Implementation for filtering reports
+            console.log('Filtering reports...');
+            loadReports();
+        }
+
+        function clearFilters() {
+            document.getElementById('statusFilter').value = '';
+            document.getElementById('validationFilter').value = '';
+            document.getElementById('dateFromFilter').value = '';
+            document.getElementById('dateToFilter').value = '';
+            loadReports();
+        }
+
+        function viewReport(reportId) {
+            // Open report in new window/tab or modal
+            window.open(`/user.html#report=${reportId}`, '_blank');
+        }
+
+        function refreshCurrentSection() {
+            const activeSection = document.querySelector('.nav-link.active').dataset.section;
+            loadSectionData(activeSection);
+        }
+
+        function showAlert(message, type) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'warning' ? 'exclamation-triangle' : 'times-circle'}"></i>
+                ${message}
+            `;
+            
+            document.querySelector('.main-content').insertBefore(alertDiv, document.querySelector('.main-content').firstChild);
+            
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 5000);
+        }
+
+        // Close modals when clicking outside
+        window.onclick = function(event) {
+            const modals = document.querySelectorAll('.modal');
+            modals.forEach(modal => {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        }
+    </script>
+</body>
+</html>

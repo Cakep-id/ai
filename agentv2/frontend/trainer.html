@@ -1,0 +1,1734 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgentV2 Trainer - AI Model Training</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            color: white;
+            font-size: 1.8rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header .trainer-badge {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 80px;
+            width: 250px;
+            height: calc(100vh - 80px);
+            background: rgba(118, 75, 162, 0.95);
+            backdrop-filter: blur(10px);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            overflow-y: auto;
+            z-index: 1000;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            padding: 1rem 0;
+        }
+
+        .sidebar-menu li {
+            margin: 0.5rem 0;
+        }
+
+        .sidebar-menu a {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem 1.5rem;
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 3px solid transparent;
+        }
+
+        .sidebar-menu a:hover,
+        .sidebar-menu a.active {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            border-left-color: #f39c12;
+        }
+
+        .main-content {
+            margin-left: 250px;
+            padding: 2rem;
+            min-height: calc(100vh - 80px);
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .stat-card {
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #f39c12, #e67e22);
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #2c3e50;
+            margin: 0.5rem 0;
+        }
+
+        .stat-label {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stat-icon {
+            font-size: 2rem;
+            color: #f39c12;
+            margin-bottom: 0.5rem;
+        }
+
+        .section-title {
+            color: white;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .upload-area {
+            border: 2px dashed #ccc;
+            border-radius: 15px;
+            padding: 3rem;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.9);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .upload-area:hover,
+        .upload-area.dragover {
+            border-color: #f39c12;
+            background: rgba(243, 156, 18, 0.1);
+        }
+
+        .upload-icon {
+            font-size: 4rem;
+            color: #f39c12;
+            margin-bottom: 1rem;
+        }
+
+        .upload-text {
+            font-size: 1.2rem;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+
+        .upload-subtext {
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .preview-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .preview-item {
+            position: relative;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .preview-img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+        }
+
+        .preview-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .preview-item:hover .preview-overlay {
+            opacity: 1;
+        }
+
+        .remove-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        .training-progress {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #f39c12, #e67e22);
+            border-radius: 10px;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        .progress-text {
+            color: white;
+            text-align: center;
+            margin-top: 0.5rem;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .metric-item {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 1rem;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .metric-label {
+            font-size: 0.8rem;
+            color: #7f8c8d;
+            text-transform: uppercase;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #f39c12, #e67e22);
+            color: white;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #27ae60, #229954);
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, #f39c12, #d68910);
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #ecf0f1;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #f39c12;
+        }
+
+        .textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.5rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+            padding-right: 2.5rem;
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table th {
+            background: linear-gradient(135deg, #764ba2, #667eea);
+            color: white;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .table td {
+            padding: 1rem;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        .table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .status-training { background: #ffeaa7; color: #6c5700; }
+        .status-completed { background: #d4edda; color: #155724; }
+        .status-failed { background: #f8d7da; color: #721c24; }
+        .status-paused { background: #cce5ff; color: #0066cc; }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: white;
+            margin: 5% auto;
+            padding: 2rem;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        .close {
+            font-size: 2rem;
+            cursor: pointer;
+            color: #7f8c8d;
+        }
+
+        .close:hover {
+            color: #e74c3c;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-top: 1rem;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: white;
+        }
+
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 10px;
+            margin: 1rem 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .section {
+            display: none;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        .annotation-tool {
+            position: relative;
+            display: inline-block;
+        }
+
+        .annotation-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            cursor: crosshair;
+        }
+
+        .class-selector {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 1rem;
+            border-radius: 10px;
+            margin: 1rem 0;
+        }
+
+        .class-buttons {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .class-btn {
+            padding: 0.5rem 1rem;
+            border: 2px solid #f39c12;
+            background: white;
+            color: #f39c12;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .class-btn.active {
+            background: #f39c12;
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+            
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+                padding: 1rem;
+            }
+            
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            
+            .header {
+                padding: 1rem;
+            }
+            
+            .header h1 {
+                font-size: 1.3rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1><i class="fas fa-graduation-cap"></i> AgentV2 Trainer - AI Training Interface</h1>
+        <div class="trainer-badge">
+            <i class="fas fa-user-graduate"></i>
+            AI Trainer
+        </div>
+    </div>
+
+    <div class="sidebar">
+        <ul class="sidebar-menu">
+            <li><a href="#" class="nav-link active" data-section="dashboard">
+                <i class="fas fa-tachometer-alt"></i> Training Dashboard
+            </a></li>
+            <li><a href="#" class="nav-link" data-section="upload">
+                <i class="fas fa-upload"></i> Data Upload
+            </a></li>
+            <li><a href="#" class="nav-link" data-section="annotation">
+                <i class="fas fa-edit"></i> Data Annotation
+            </a></li>
+            <li><a href="#" class="nav-link" data-section="training">
+                <i class="fas fa-brain"></i> Model Training
+            </a></li>
+            <li><a href="#" class="nav-link" data-section="evaluation">
+                <i class="fas fa-chart-bar"></i> Model Evaluation
+            </a></li>
+            <li><a href="#" class="nav-link" data-section="history">
+                <i class="fas fa-history"></i> Training History
+            </a></li>
+        </ul>
+    </div>
+
+    <div class="main-content">
+        <!-- Dashboard Section -->
+        <section id="dashboard" class="section active">
+            <h2 class="section-title">
+                <i class="fas fa-tachometer-alt"></i>
+                Training Dashboard
+            </h2>
+            
+            <div class="dashboard-grid">
+                <div class="card stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-images"></i>
+                    </div>
+                    <div class="stat-number" id="totalImages">-</div>
+                    <div class="stat-label">Training Images</div>
+                </div>
+                
+                <div class="card stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-tags"></i>
+                    </div>
+                    <div class="stat-number" id="totalAnnotations">-</div>
+                    <div class="stat-label">Annotations</div>
+                </div>
+                
+                <div class="card stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <div class="stat-number" id="modelVersion">-</div>
+                    <div class="stat-label">Model Version</div>
+                </div>
+                
+                <div class="card stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="stat-number" id="modelAccuracy">-</div>
+                    <div class="stat-label">Model mAP@0.5</div>
+                </div>
+            </div>
+
+            <div class="dashboard-grid">
+                <div class="card">
+                    <h3>Training Progress</h3>
+                    <div id="currentTraining" class="loading">
+                        <div class="spinner"></div>
+                        <p>Loading training status...</p>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h3>Data Distribution</h3>
+                    <div class="chart-container">
+                        <canvas id="dataDistributionChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Recent Training Sessions</h3>
+                <div id="recentSessions" class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading training sessions...</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Data Upload Section -->
+        <section id="upload" class="section">
+            <h2 class="section-title">
+                <i class="fas fa-upload"></i>
+                Data Upload
+            </h2>
+            
+            <div class="card">
+                <div class="upload-area" onclick="document.getElementById('imageFiles').click()">
+                    <div class="upload-icon">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                    </div>
+                    <div class="upload-text">Click to upload images or drag and drop</div>
+                    <div class="upload-subtext">Supports JPG, PNG, BMP formats</div>
+                    <input type="file" id="imageFiles" class="file-input" multiple accept="image/*">
+                </div>
+                
+                <div id="uploadPreview" class="preview-container"></div>
+                
+                <div class="form-group">
+                    <label>Dataset Category</label>
+                    <select class="form-control select" id="datasetCategory">
+                        <option value="training">Training Data</option>
+                        <option value="validation">Validation Data</option>
+                        <option value="testing">Testing Data</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea class="form-control textarea" id="uploadDescription" 
+                             placeholder="Describe the uploaded images (e.g., source, conditions, quality)"></textarea>
+                </div>
+                
+                <button class="btn btn-primary" id="uploadBtn" onclick="uploadImages()">
+                    <i class="fas fa-upload"></i> Upload Images
+                </button>
+            </div>
+        </section>
+
+        <!-- Data Annotation Section -->
+        <section id="annotation" class="section">
+            <h2 class="section-title">
+                <i class="fas fa-edit"></i>
+                Data Annotation
+            </h2>
+            
+            <div class="card">
+                <h3>Images Requiring Annotation</h3>
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Image</th>
+                                <th>Filename</th>
+                                <th>Upload Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="annotationTableBody">
+                            <tr>
+                                <td colspan="5" class="loading">
+                                    <div class="spinner"></div>
+                                    Loading images...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Model Training Section -->
+        <section id="training" class="section">
+            <h2 class="section-title">
+                <i class="fas fa-brain"></i>
+                Model Training
+            </h2>
+            
+            <div class="card">
+                <h3>Training Configuration</h3>
+                <div class="form-group">
+                    <label>Training Name</label>
+                    <input type="text" class="form-control" id="trainingName" 
+                           placeholder="Enter training session name">
+                </div>
+                
+                <div class="form-group">
+                    <label>Base Model</label>
+                    <select class="form-control select" id="baseModel">
+                        <option value="yolov8n.pt">YOLOv8 Nano</option>
+                        <option value="yolov8s.pt">YOLOv8 Small</option>
+                        <option value="yolov8m.pt">YOLOv8 Medium</option>
+                        <option value="yolov8l.pt">YOLOv8 Large</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Epochs</label>
+                    <input type="number" class="form-control" id="epochs" value="100" min="1" max="1000">
+                </div>
+                
+                <div class="form-group">
+                    <label>Batch Size</label>
+                    <select class="form-control select" id="batchSize">
+                        <option value="8">8</option>
+                        <option value="16" selected>16</option>
+                        <option value="32">32</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Image Size</label>
+                    <select class="form-control select" id="imageSize">
+                        <option value="416">416x416</option>
+                        <option value="512">512x512</option>
+                        <option value="640" selected>640x640</option>
+                        <option value="1024">1024x1024</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>Learning Rate</label>
+                    <input type="number" class="form-control" id="learningRate" 
+                           value="0.01" step="0.001" min="0.001" max="0.1">
+                </div>
+                
+                <div class="form-group">
+                    <label>Data Augmentation</label>
+                    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                        <label style="display: flex; align-items: center; gap: 0.5rem;">
+                            <input type="checkbox" id="augFlip" checked> Flip
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 0.5rem;">
+                            <input type="checkbox" id="augRotate" checked> Rotate
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 0.5rem;">
+                            <input type="checkbox" id="augScale" checked> Scale
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 0.5rem;">
+                            <input type="checkbox" id="augCrop" checked> Crop
+                        </label>
+                    </div>
+                </div>
+                
+                <button class="btn btn-success" id="startTrainingBtn" onclick="startTraining()">
+                    <i class="fas fa-play"></i> Start Training
+                </button>
+                
+                <button class="btn btn-warning" id="pauseTrainingBtn" onclick="pauseTraining()" style="display: none;">
+                    <i class="fas fa-pause"></i> Pause Training
+                </button>
+                
+                <button class="btn btn-danger" id="stopTrainingBtn" onclick="stopTraining()" style="display: none;">
+                    <i class="fas fa-stop"></i> Stop Training
+                </button>
+            </div>
+
+            <div id="trainingProgressCard" class="card" style="display: none;">
+                <h3>Training Progress</h3>
+                <div class="training-progress">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="trainingProgressBar"></div>
+                    </div>
+                    <div class="progress-text" id="trainingProgressText">Initializing...</div>
+                </div>
+                
+                <div class="metrics-grid">
+                    <div class="metric-item">
+                        <div class="metric-value" id="currentEpoch">0</div>
+                        <div class="metric-label">Epoch</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-value" id="trainLoss">-</div>
+                        <div class="metric-label">Train Loss</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-value" id="valLoss">-</div>
+                        <div class="metric-label">Val Loss</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-value" id="mAP50">-</div>
+                        <div class="metric-label">mAP@0.5</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-value" id="mAP95">-</div>
+                        <div class="metric-label">mAP@0.5:0.95</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-value" id="eta">-</div>
+                        <div class="metric-label">ETA</div>
+                    </div>
+                </div>
+                
+                <div class="chart-container">
+                    <canvas id="trainingChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Model Evaluation Section -->
+        <section id="evaluation" class="section">
+            <h2 class="section-title">
+                <i class="fas fa-chart-bar"></i>
+                Model Evaluation
+            </h2>
+            
+            <div class="dashboard-grid">
+                <div class="card">
+                    <h3>Model Performance</h3>
+                    <div class="chart-container">
+                        <canvas id="performanceChart"></canvas>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h3>Confusion Matrix</h3>
+                    <div class="chart-container">
+                        <canvas id="confusionChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Evaluation Metrics</h3>
+                <div id="evaluationMetrics" class="loading">
+                    <div class="spinner"></div>
+                    <p>Loading evaluation metrics...</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Training History Section -->
+        <section id="history" class="section">
+            <h2 class="section-title">
+                <i class="fas fa-history"></i>
+                Training History
+            </h2>
+            
+            <div class="card">
+                <h3>Training Sessions</h3>
+                <div class="table-container">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Session ID</th>
+                                <th>Name</th>
+                                <th>Model</th>
+                                <th>Status</th>
+                                <th>Duration</th>
+                                <th>Best mAP</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyTableBody">
+                            <tr>
+                                <td colspan="8" class="loading">
+                                    <div class="spinner"></div>
+                                    Loading training history...
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Annotation Modal -->
+    <div id="annotationModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Annotate Image</h3>
+                <span class="close" onclick="closeModal('annotationModal')">&times;</span>
+            </div>
+            <div id="annotationContent">
+                <!-- Content will be loaded dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        const API_BASE = '/api';
+        let currentFiles = [];
+        let currentTrainingSession = null;
+        let trainingChart = null;
+        let charts = {};
+        
+        // Initialize application
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeNavigation();
+            initializeUpload();
+            loadDashboard();
+            
+            // Auto-refresh training progress every 5 seconds
+            setInterval(updateTrainingProgress, 5000);
+        });
+
+        // Navigation handling
+        function initializeNavigation() {
+            const navLinks = document.querySelectorAll('.nav-link');
+            
+            navLinks.forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // Remove active class from all links and sections
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+                    
+                    // Add active class to clicked link and corresponding section
+                    this.classList.add('active');
+                    const sectionId = this.dataset.section;
+                    document.getElementById(sectionId).classList.add('active');
+                    
+                    // Load section data
+                    loadSectionData(sectionId);
+                });
+            });
+        }
+
+        // Load section data
+        function loadSectionData(sectionId) {
+            switch(sectionId) {
+                case 'dashboard':
+                    loadDashboard();
+                    break;
+                case 'upload':
+                    // Upload section is always ready
+                    break;
+                case 'annotation':
+                    loadAnnotationData();
+                    break;
+                case 'training':
+                    loadTrainingSection();
+                    break;
+                case 'evaluation':
+                    loadEvaluationData();
+                    break;
+                case 'history':
+                    loadTrainingHistory();
+                    break;
+            }
+        }
+
+        // Dashboard functions
+        async function loadDashboard() {
+            try {
+                const response = await fetch(`${API_BASE}/trainer/dashboard`);
+                const data = await response.json();
+                
+                updateDashboardStats(data);
+                displayTrainingStatus(data.current_training);
+                displayRecentSessions(data.recent_sessions);
+                createDataDistributionChart(data.data_distribution);
+                
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+                showAlert('Error loading dashboard data', 'error');
+            }
+        }
+
+        function updateDashboardStats(data) {
+            document.getElementById('totalImages').textContent = data.total_images || 0;
+            document.getElementById('totalAnnotations').textContent = data.total_annotations || 0;
+            document.getElementById('modelVersion').textContent = data.current_model_version || 'v1.0';
+            document.getElementById('modelAccuracy').textContent = 
+                data.latest_model_map ? (data.latest_model_map * 100).toFixed(1) + '%' : '-';
+        }
+
+        function displayTrainingStatus(training) {
+            const container = document.getElementById('currentTraining');
+            
+            if (!training) {
+                container.innerHTML = '<p>No active training session.</p>';
+                return;
+            }
+
+            const statusHtml = `
+                <div class="training-progress">
+                    <h4>${training.session_name}</h4>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${training.progress}%"></div>
+                    </div>
+                    <div class="progress-text">${training.progress}% - ${training.status}</div>
+                    <div class="metrics-grid">
+                        <div class="metric-item">
+                            <div class="metric-value">${training.current_epoch}</div>
+                            <div class="metric-label">Epoch</div>
+                        </div>
+                        <div class="metric-item">
+                            <div class="metric-value">${training.current_map?.toFixed(3) || '-'}</div>
+                            <div class="metric-label">Current mAP</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            container.innerHTML = statusHtml;
+            currentTrainingSession = training;
+        }
+
+        function displayRecentSessions(sessions) {
+            const container = document.getElementById('recentSessions');
+            
+            if (!sessions || sessions.length === 0) {
+                container.innerHTML = '<p>No recent training sessions.</p>';
+                return;
+            }
+
+            const sessionsHtml = sessions.slice(0, 5).map(session => `
+                <div class="session-item" style="margin: 0.5rem 0; padding: 1rem; background: #f8f9fa; border-radius: 8px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <strong>${session.session_name}</strong>
+                            <span class="status-badge status-${session.status}">${session.status}</span>
+                        </div>
+                        <small>${new Date(session.created_at).toLocaleDateString()}</small>
+                    </div>
+                    <p style="margin: 0.5rem 0; color: #666;">
+                        Best mAP: ${session.best_map?.toFixed(3) || 'N/A'} | 
+                        Epochs: ${session.epochs_completed}/${session.total_epochs}
+                    </p>
+                </div>
+            `).join('');
+
+            container.innerHTML = sessionsHtml;
+        }
+
+        function createDataDistributionChart(data) {
+            if (!data) return;
+            
+            const ctx = document.getElementById('dataDistributionChart').getContext('2d');
+            if (charts.dataDistributionChart) charts.dataDistributionChart.destroy();
+            
+            charts.dataDistributionChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: data.map(d => d.class_name),
+                    datasets: [{
+                        data: data.map(d => d.count),
+                        backgroundColor: ['#f39c12', '#e74c3c', '#3498db', '#27ae60', '#9b59b6']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false
+                }
+            });
+        }
+
+        // Upload functions
+        function initializeUpload() {
+            const uploadArea = document.querySelector('.upload-area');
+            const fileInput = document.getElementById('imageFiles');
+            
+            // Drag and drop functionality
+            uploadArea.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                this.classList.add('dragover');
+            });
+            
+            uploadArea.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                this.classList.remove('dragover');
+            });
+            
+            uploadArea.addEventListener('drop', function(e) {
+                e.preventDefault();
+                this.classList.remove('dragover');
+                
+                const files = Array.from(e.dataTransfer.files).filter(file => 
+                    file.type.startsWith('image/')
+                );
+                
+                handleFileSelection(files);
+            });
+            
+            fileInput.addEventListener('change', function(e) {
+                handleFileSelection(Array.from(e.target.files));
+            });
+        }
+
+        function handleFileSelection(files) {
+            currentFiles = files;
+            displayFilePreview(files);
+        }
+
+        function displayFilePreview(files) {
+            const container = document.getElementById('uploadPreview');
+            container.innerHTML = '';
+            
+            files.forEach((file, index) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.createElement('div');
+                    preview.className = 'preview-item';
+                    preview.innerHTML = `
+                        <img src="${e.target.result}" class="preview-img" alt="${file.name}">
+                        <div class="preview-overlay">
+                            <div>${file.name}</div>
+                            <div>${(file.size / 1024 / 1024).toFixed(2)} MB</div>
+                        </div>
+                        <button class="remove-btn" onclick="removeFile(${index})">&times;</button>
+                    `;
+                    container.appendChild(preview);
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function removeFile(index) {
+            currentFiles.splice(index, 1);
+            displayFilePreview(currentFiles);
+        }
+
+        async function uploadImages() {
+            if (currentFiles.length === 0) {
+                showAlert('Please select images to upload', 'warning');
+                return;
+            }
+
+            const uploadBtn = document.getElementById('uploadBtn');
+            uploadBtn.disabled = true;
+            uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
+
+            try {
+                const formData = new FormData();
+                
+                currentFiles.forEach(file => {
+                    formData.append('images', file);
+                });
+                
+                formData.append('category', document.getElementById('datasetCategory').value);
+                formData.append('description', document.getElementById('uploadDescription').value);
+                formData.append('trainer_identifier', 'trainer_user');
+
+                const response = await fetch(`${API_BASE}/trainer/upload`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showAlert(`Successfully uploaded ${result.uploaded_count} images`, 'success');
+                    currentFiles = [];
+                    document.getElementById('uploadPreview').innerHTML = '';
+                    document.getElementById('uploadDescription').value = '';
+                    loadDashboard(); // Refresh dashboard stats
+                } else {
+                    throw new Error(result.message);
+                }
+
+            } catch (error) {
+                console.error('Error uploading images:', error);
+                showAlert('Error uploading images', 'error');
+            } finally {
+                uploadBtn.disabled = false;
+                uploadBtn.innerHTML = '<i class="fas fa-upload"></i> Upload Images';
+            }
+        }
+
+        // Training functions
+        async function loadTrainingSection() {
+            // Check if there's an active training session
+            try {
+                const response = await fetch(`${API_BASE}/trainer/sessions/active`);
+                const data = await response.json();
+                
+                if (data.session) {
+                    currentTrainingSession = data.session;
+                    showTrainingProgress(true);
+                    updateTrainingUI();
+                }
+                
+            } catch (error) {
+                console.error('Error checking training status:', error);
+            }
+        }
+
+        async function startTraining() {
+            const trainingConfig = {
+                session_name: document.getElementById('trainingName').value,
+                base_model: document.getElementById('baseModel').value,
+                epochs: parseInt(document.getElementById('epochs').value),
+                batch_size: parseInt(document.getElementById('batchSize').value),
+                image_size: parseInt(document.getElementById('imageSize').value),
+                learning_rate: parseFloat(document.getElementById('learningRate').value),
+                augmentation: {
+                    flip: document.getElementById('augFlip').checked,
+                    rotate: document.getElementById('augRotate').checked,
+                    scale: document.getElementById('augScale').checked,
+                    crop: document.getElementById('augCrop').checked
+                },
+                trainer_identifier: 'trainer_user'
+            };
+
+            if (!trainingConfig.session_name) {
+                showAlert('Please enter a training session name', 'warning');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE}/trainer/train`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(trainingConfig)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showAlert('Training started successfully', 'success');
+                    currentTrainingSession = result.session;
+                    showTrainingProgress(true);
+                    updateTrainingUI();
+                } else {
+                    throw new Error(result.message);
+                }
+
+            } catch (error) {
+                console.error('Error starting training:', error);
+                showAlert('Error starting training', 'error');
+            }
+        }
+
+        function showTrainingProgress(show) {
+            const progressCard = document.getElementById('trainingProgressCard');
+            const startBtn = document.getElementById('startTrainingBtn');
+            const pauseBtn = document.getElementById('pauseTrainingBtn');
+            const stopBtn = document.getElementById('stopTrainingBtn');
+
+            if (show) {
+                progressCard.style.display = 'block';
+                startBtn.style.display = 'none';
+                pauseBtn.style.display = 'inline-flex';
+                stopBtn.style.display = 'inline-flex';
+            } else {
+                progressCard.style.display = 'none';
+                startBtn.style.display = 'inline-flex';
+                pauseBtn.style.display = 'none';
+                stopBtn.style.display = 'none';
+            }
+        }
+
+        async function updateTrainingProgress() {
+            if (!currentTrainingSession) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/trainer/sessions/${currentTrainingSession.session_id}/progress`);
+                const data = await response.json();
+
+                if (data.session) {
+                    currentTrainingSession = data.session;
+                    updateTrainingUI();
+
+                    // Check if training is completed
+                    if (data.session.status === 'completed' || data.session.status === 'failed') {
+                        showTrainingProgress(false);
+                        currentTrainingSession = null;
+                        loadDashboard(); // Refresh dashboard
+                    }
+                }
+
+            } catch (error) {
+                console.error('Error updating training progress:', error);
+            }
+        }
+
+        function updateTrainingUI() {
+            if (!currentTrainingSession) return;
+
+            const session = currentTrainingSession;
+            const progress = (session.epochs_completed / session.total_epochs) * 100;
+
+            // Update progress bar
+            document.getElementById('trainingProgressBar').style.width = `${progress}%`;
+            document.getElementById('trainingProgressText').textContent = 
+                `Epoch ${session.epochs_completed}/${session.total_epochs} - ${session.status}`;
+
+            // Update metrics
+            document.getElementById('currentEpoch').textContent = session.epochs_completed;
+            document.getElementById('trainLoss').textContent = session.train_loss?.toFixed(4) || '-';
+            document.getElementById('valLoss').textContent = session.val_loss?.toFixed(4) || '-';
+            document.getElementById('mAP50').textContent = session.map50?.toFixed(3) || '-';
+            document.getElementById('mAP95').textContent = session.map95?.toFixed(3) || '-';
+            document.getElementById('eta').textContent = session.eta || '-';
+
+            // Update training chart
+            updateTrainingChart(session);
+        }
+
+        function updateTrainingChart(session) {
+            if (!session.metrics_history) return;
+
+            const ctx = document.getElementById('trainingChart').getContext('2d');
+            
+            if (!trainingChart) {
+                trainingChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: [],
+                        datasets: [
+                            {
+                                label: 'Train Loss',
+                                data: [],
+                                borderColor: '#e74c3c',
+                                backgroundColor: 'rgba(231, 76, 60, 0.1)'
+                            },
+                            {
+                                label: 'Val Loss',
+                                data: [],
+                                borderColor: '#3498db',
+                                backgroundColor: 'rgba(52, 152, 219, 0.1)'
+                            },
+                            {
+                                label: 'mAP@0.5',
+                                data: [],
+                                borderColor: '#27ae60',
+                                backgroundColor: 'rgba(39, 174, 96, 0.1)',
+                                yAxisID: 'y1'
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: {
+                            y: {
+                                type: 'linear',
+                                display: true,
+                                position: 'left',
+                            },
+                            y1: {
+                                type: 'linear',
+                                display: true,
+                                position: 'right',
+                                min: 0,
+                                max: 1,
+                                grid: {
+                                    drawOnChartArea: false,
+                                },
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Update chart data
+            const history = session.metrics_history;
+            trainingChart.data.labels = history.map((_, i) => i + 1);
+            trainingChart.data.datasets[0].data = history.map(h => h.train_loss);
+            trainingChart.data.datasets[1].data = history.map(h => h.val_loss);
+            trainingChart.data.datasets[2].data = history.map(h => h.map50);
+            trainingChart.update();
+        }
+
+        async function pauseTraining() {
+            if (!currentTrainingSession) return;
+
+            try {
+                const response = await fetch(`${API_BASE}/trainer/sessions/${currentTrainingSession.session_id}/pause`, {
+                    method: 'POST'
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    showAlert('Training paused', 'success');
+                }
+
+            } catch (error) {
+                console.error('Error pausing training:', error);
+                showAlert('Error pausing training', 'error');
+            }
+        }
+
+        async function stopTraining() {
+            if (!currentTrainingSession) return;
+
+            if (confirm('Are you sure you want to stop the training? This cannot be undone.')) {
+                try {
+                    const response = await fetch(`${API_BASE}/trainer/sessions/${currentTrainingSession.session_id}/stop`, {
+                        method: 'POST'
+                    });
+
+                    const result = await response.json();
+                    if (result.success) {
+                        showAlert('Training stopped', 'success');
+                        showTrainingProgress(false);
+                        currentTrainingSession = null;
+                    }
+
+                } catch (error) {
+                    console.error('Error stopping training:', error);
+                    showAlert('Error stopping training', 'error');
+                }
+            }
+        }
+
+        // Annotation functions
+        async function loadAnnotationData() {
+            try {
+                const response = await fetch(`${API_BASE}/trainer/images/unannotated`);
+                const data = await response.json();
+                
+                displayAnnotationTable(data.images);
+                
+            } catch (error) {
+                console.error('Error loading annotation data:', error);
+                showAlert('Error loading annotation data', 'error');
+            }
+        }
+
+        function displayAnnotationTable(images) {
+            const tbody = document.getElementById('annotationTableBody');
+            
+            if (!images || images.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5">No images requiring annotation.</td></tr>';
+                return;
+            }
+
+            const imagesHtml = images.map(image => `
+                <tr>
+                    <td>
+                        <img src="${image.image_path}" style="width: 50px; height: 50px; object-fit: cover; border-radius: 5px;" alt="Preview">
+                    </td>
+                    <td>${image.filename}</td>
+                    <td>${new Date(image.upload_date).toLocaleDateString()}</td>
+                    <td><span class="status-badge status-${image.annotation_status || 'pending'}">${image.annotation_status || 'pending'}</span></td>
+                    <td>
+                        <button class="btn btn-primary btn-sm" onclick="annotateImage(${image.id})">
+                            <i class="fas fa-edit"></i> Annotate
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+
+            tbody.innerHTML = imagesHtml;
+        }
+
+        function annotateImage(imageId) {
+            // Open annotation modal
+            openModal('annotationModal');
+            
+            // Load annotation interface
+            const content = `
+                <div style="text-align: center;">
+                    <p>Annotation interface would be implemented here.</p>
+                    <p>Features would include:</p>
+                    <ul style="text-align: left; max-width: 400px; margin: 0 auto;">
+                        <li>Bounding box drawing</li>
+                        <li>Class selection</li>
+                        <li>Annotation validation</li>
+                        <li>Export to YOLO format</li>
+                    </ul>
+                    <button class="btn btn-success" onclick="closeModal('annotationModal')">
+                        <i class="fas fa-check"></i> Save Annotations
+                    </button>
+                </div>
+            `;
+            
+            document.getElementById('annotationContent').innerHTML = content;
+        }
+
+        // Evaluation functions
+        async function loadEvaluationData() {
+            try {
+                const response = await fetch(`${API_BASE}/trainer/evaluation/latest`);
+                const data = await response.json();
+                
+                displayEvaluationMetrics(data.metrics);
+                
+            } catch (error) {
+                console.error('Error loading evaluation data:', error);
+                document.getElementById('evaluationMetrics').innerHTML = '<p>No evaluation data available.</p>';
+            }
+        }
+
+        function displayEvaluationMetrics(metrics) {
+            if (!metrics) {
+                document.getElementById('evaluationMetrics').innerHTML = '<p>No evaluation metrics available.</p>';
+                return;
+            }
+
+            const metricsHtml = `
+                <div class="metrics-grid">
+                    <div class="metric-item">
+                        <div class="metric-value">${(metrics.map50 * 100).toFixed(1)}%</div>
+                        <div class="metric-label">mAP@0.5</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-value">${(metrics.map95 * 100).toFixed(1)}%</div>
+                        <div class="metric-label">mAP@0.5:0.95</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-value">${(metrics.precision * 100).toFixed(1)}%</div>
+                        <div class="metric-label">Precision</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-value">${(metrics.recall * 100).toFixed(1)}%</div>
+                        <div class="metric-label">Recall</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-value">${(metrics.f1_score * 100).toFixed(1)}%</div>
+                        <div class="metric-label">F1 Score</div>
+                    </div>
+                    <div class="metric-item">
+                        <div class="metric-value">${metrics.inference_time_ms}ms</div>
+                        <div class="metric-label">Inference Time</div>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('evaluationMetrics').innerHTML = metricsHtml;
+        }
+
+        // Training History functions
+        async function loadTrainingHistory() {
+            try {
+                const response = await fetch(`${API_BASE}/trainer/sessions`);
+                const data = await response.json();
+                
+                displayTrainingHistory(data.sessions);
+                
+            } catch (error) {
+                console.error('Error loading training history:', error);
+                showAlert('Error loading training history', 'error');
+            }
+        }
+
+        function displayTrainingHistory(sessions) {
+            const tbody = document.getElementById('historyTableBody');
+            
+            if (!sessions || sessions.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8">No training sessions found.</td></tr>';
+                return;
+            }
+
+            const sessionsHtml = sessions.map(session => `
+                <tr>
+                    <td><strong>${session.session_id}</strong></td>
+                    <td>${session.session_name}</td>
+                    <td>${session.base_model}</td>
+                    <td><span class="status-badge status-${session.status}">${session.status}</span></td>
+                    <td>${session.duration || '-'}</td>
+                    <td>${session.best_map ? (session.best_map * 100).toFixed(1) + '%' : '-'}</td>
+                    <td>${new Date(session.created_at).toLocaleDateString()}</td>
+                    <td>
+                        <button class="btn btn-primary btn-sm" onclick="viewSession('${session.session_id}')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        ${session.status === 'completed' ? 
+                            `<button class="btn btn-success btn-sm" onclick="deployModel('${session.session_id}')">
+                                <i class="fas fa-rocket"></i>
+                            </button>` : ''
+                        }
+                    </td>
+                </tr>
+            `).join('');
+
+            tbody.innerHTML = sessionsHtml;
+        }
+
+        function viewSession(sessionId) {
+            // Open session details in new window or modal
+            console.log('Viewing session:', sessionId);
+        }
+
+        async function deployModel(sessionId) {
+            if (confirm('Deploy this model to production?')) {
+                try {
+                    const response = await fetch(`${API_BASE}/trainer/sessions/${sessionId}/deploy`, {
+                        method: 'POST'
+                    });
+
+                    const result = await response.json();
+                    if (result.success) {
+                        showAlert('Model deployed successfully', 'success');
+                        loadDashboard(); // Refresh dashboard
+                    }
+
+                } catch (error) {
+                    console.error('Error deploying model:', error);
+                    showAlert('Error deploying model', 'error');
+                }
+            }
+        }
+
+        // Modal functions
+        function openModal(modalId) {
+            document.getElementById(modalId).style.display = 'block';
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+        }
+
+        // Utility functions
+        function showAlert(message, type) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'warning' ? 'exclamation-triangle' : 'times-circle'}"></i>
+                ${message}
+            `;
+            
+            document.querySelector('.main-content').insertBefore(alertDiv, document.querySelector('.main-content').firstChild);
+            
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 5000);
+        }
+
+        // Close modals when clicking outside
+        window.onclick = function(event) {
+            const modals = document.querySelectorAll('.modal');
+            modals.forEach(modal => {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        }
+    </script>
+</body>
+</html>

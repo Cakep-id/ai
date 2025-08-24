@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgentV2 - Inspeksi Aset AI</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header h1 {
+            color: white;
+            font-size: 2rem;
+            text-align: center;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .upload-section {
+            text-align: center;
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 3rem;
+            margin-bottom: 2rem;
+            transition: all 0.3s ease;
+        }
+
+        .upload-section:hover {
+            border-color: #764ba2;
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .upload-section.dragover {
+            border-color: #4CAF50;
+            background: rgba(76, 175, 80, 0.1);
+        }
+
+        .upload-icon {
+            font-size: 4rem;
+            color: #667eea;
+            margin-bottom: 1rem;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+            margin: 1rem 0;
+        }
+
+        .file-input {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        .file-input-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .file-input-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .submit-btn {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            padding: 1rem 2rem;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(76, 175, 80, 0.3);
+        }
+
+        .submit-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .results-section {
+            display: none;
+        }
+
+        .result-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border-left: 5px solid #667eea;
+        }
+
+        .risk-badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            margin: 0.5rem 0;
+        }
+
+        .risk-low { background: #d4edda; color: #155724; }
+        .risk-medium { background: #fff3cd; color: #856404; }
+        .risk-high { background: #f8d7da; color: #721c24; }
+        .risk-critical { background: #f5c6cb; color: #491217; }
+
+        .detection-item {
+            background: white;
+            border-radius: 10px;
+            padding: 1rem;
+            margin: 0.5rem 0;
+            border: 1px solid #e1e5e9;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .detection-icon {
+            font-size: 2rem;
+            width: 50px;
+            text-align: center;
+        }
+
+        .detection-details h4 {
+            color: #333;
+            margin-bottom: 0.25rem;
+        }
+
+        .detection-details p {
+            color: #666;
+            margin: 0.25rem 0;
+            font-size: 0.9rem;
+        }
+
+        .confidence-bar {
+            background: #e1e5e9;
+            border-radius: 10px;
+            height: 6px;
+            overflow: hidden;
+            margin: 0.5rem 0;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #f44336 0%, #ff9800 50%, #4caf50 100%);
+            transition: width 0.3s ease;
+        }
+
+        .image-preview {
+            max-width: 100%;
+            border-radius: 10px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+            margin: 1rem 0;
+        }
+
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 0.25rem;
+            margin-bottom: 1rem;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 0.75rem 1rem;
+            text-align: center;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .tab.active {
+            background: white;
+            color: #667eea;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .info-item {
+            background: white;
+            padding: 1rem;
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid #e1e5e9;
+        }
+
+        .info-item .value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+            display: block;
+        }
+
+        .info-item .label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-top: 0.25rem;
+        }
+
+        .alert {
+            padding: 1rem;
+            border-radius: 10px;
+            margin: 1rem 0;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .recommendations {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+        }
+
+        .recommendations h4 {
+            color: #1976d2;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .recommendations ul {
+            list-style: none;
+        }
+
+        .recommendations li {
+            padding: 0.5rem 0;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+
+        .recommendations li::before {
+            content: "✓";
+            color: #4caf50;
+            font-weight: bold;
+            margin-top: 0.1rem;
+        }
+
+        .recent-reports {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .report-item {
+            background: white;
+            border-radius: 10px;
+            padding: 1rem;
+            margin: 0.5rem 0;
+            border: 1px solid #e1e5e9;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .report-item:hover {
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transform: translateY(-2px);
+        }
+
+        .report-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .report-id {
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .report-date {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .report-status {
+            padding: 0.25rem 0.75rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+
+        .status-completed { background: #d4edda; color: #155724; }
+        .status-processing { background: #fff3cd; color: #856404; }
+        .status-pending { background: #cce5ff; color: #0066cc; }
+        .status-failed { background: #f8d7da; color: #721c24; }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 1rem;
+                margin: 1rem auto;
+            }
+            
+            .card {
+                padding: 1rem;
+            }
+            
+            .upload-section {
+                padding: 2rem 1rem;
+            }
+            
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1><i class="fas fa-robot"></i> AgentV2 - AI Asset Inspection System</h1>
+    </div>
+
+    <div class="container">
+        <!-- Main Submission Form -->
+        <div class="card">
+            <h2><i class="fas fa-upload"></i> Submit Inspection Report</h2>
+            
+            <form id="inspectionForm">
+                <div class="upload-section" id="uploadArea">
+                    <div class="upload-icon">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                    </div>
+                    <h3>Upload Asset Image</h3>
+                    <p>Drag and drop your image here or click to select</p>
+                    <div class="file-input-wrapper">
+                        <input type="file" class="file-input" id="imageFile" accept="image/*" required>
+                        <button type="button" class="file-input-button">
+                            <i class="fas fa-image"></i> Select Image
+                        </button>
+                    </div>
+                    <div id="imagePreview"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="userIdentifier">User Identifier (Optional)</label>
+                    <input type="text" class="form-control" id="userIdentifier" placeholder="Enter your identifier">
+                </div>
+
+                <div class="form-group">
+                    <label for="assetDescription">Asset Description</label>
+                    <textarea class="form-control textarea" id="assetDescription" 
+                             placeholder="Describe the asset you are inspecting (minimum 10 characters)" 
+                             required minlength="10"></textarea>
+                </div>
+
+                <button type="submit" class="submit-btn" id="submitBtn">
+                    <i class="fas fa-paper-plane"></i> Submit for Analysis
+                </button>
+            </form>
+        </div>
+
+        <!-- Loading Section -->
+        <div class="loading" id="loadingSection">
+            <div class="card">
+                <div class="spinner"></div>
+                <h3>Analyzing Your Asset...</h3>
+                <p>Our AI is processing your image and generating the inspection report. Please wait...</p>
+                <div id="progressText">Initializing analysis...</div>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div class="results-section" id="resultsSection">
+            <div class="card">
+                <h2><i class="fas fa-chart-line"></i> Analysis Results</h2>
+                
+                <div class="tabs">
+                    <div class="tab active" data-tab="overview">
+                        <i class="fas fa-eye"></i> Overview
+                    </div>
+                    <div class="tab" data-tab="detections">
+                        <i class="fas fa-search"></i> Detections
+                    </div>
+                    <div class="tab" data-tab="risk">
+                        <i class="fas fa-exclamation-triangle"></i> Risk Analysis
+                    </div>
+                    <div class="tab" data-tab="images">
+                        <i class="fas fa-images"></i> Images
+                    </div>
+                </div>
+
+                <div class="tab-content active" id="overview">
+                    <div class="result-card">
+                        <h3>Report Summary</h3>
+                        <div class="info-grid" id="summaryGrid"></div>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="detections">
+                    <div class="result-card">
+                        <h3>Damage Detections</h3>
+                        <div id="detectionsList"></div>
+                    </div>
+                </div>
+
+                <div class="tab-content" id="risk">
+                    <div class="result-card">
+                        <h3>Risk Assessment</h3>
+                        <div id="riskAnalysis"></div>
+                    </div>
+                    <div class="recommendations" id="recommendationsSection"></div>
+                </div>
+
+                <div class="tab-content" id="images">
+                    <div class="result-card">
+                        <h3>Analysis Images</h3>
+                        <div id="imageGallery"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Reports Section -->
+        <div class="card">
+            <h2><i class="fas fa-history"></i> Recent Reports</h2>
+            <div class="recent-reports" id="recentReports">
+                <p>Loading recent reports...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentReportId = null;
+        const API_BASE = '/api';
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeFileUpload();
+            initializeTabs();
+            loadRecentReports();
+            setupForm();
+        });
+
+        // File upload handling
+        function initializeFileUpload() {
+            const uploadArea = document.getElementById('uploadArea');
+            const fileInput = document.getElementById('imageFile');
+            const imagePreview = document.getElementById('imagePreview');
+
+            // Drag and drop
+            uploadArea.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            });
+
+            uploadArea.addEventListener('dragleave', function(e) {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+            });
+
+            uploadArea.addEventListener('drop', function(e) {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+                
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    fileInput.files = files;
+                    handleFileSelect(files[0]);
+                }
+            });
+
+            // File input change
+            fileInput.addEventListener('change', function(e) {
+                if (e.target.files.length > 0) {
+                    handleFileSelect(e.target.files[0]);
+                }
+            });
+        }
+
+        function handleFileSelect(file) {
+            const imagePreview = document.getElementById('imagePreview');
+            
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    imagePreview.innerHTML = `
+                        <img src="${e.target.result}" alt="Preview" class="image-preview" style="max-width: 300px;">
+                        <p><strong>File:</strong> ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)</p>
+                    `;
+                };
+                reader.readAsDataURL(file);
+            } else {
+                showAlert('Please select a valid image file.', 'error');
+            }
+        }
+
+        // Tab functionality
+        function initializeTabs() {
+            const tabs = document.querySelectorAll('.tab');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    const targetTab = this.dataset.tab;
+                    
+                    // Remove active class from all tabs and contents
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tabContents.forEach(content => content.classList.remove('active'));
+                    
+                    // Add active class to clicked tab and corresponding content
+                    this.classList.add('active');
+                    document.getElementById(targetTab).classList.add('active');
+                });
+            });
+        }
+
+        // Form submission
+        function setupForm() {
+            const form = document.getElementById('inspectionForm');
+            form.addEventListener('submit', handleFormSubmit);
+        }
+
+        async function handleFormSubmit(e) {
+            e.preventDefault();
+            
+            const fileInput = document.getElementById('imageFile');
+            const userIdentifier = document.getElementById('userIdentifier').value;
+            const assetDescription = document.getElementById('assetDescription').value;
+            
+            // Validation
+            if (!fileInput.files.length) {
+                showAlert('Please select an image file.', 'error');
+                return;
+            }
+            
+            if (assetDescription.length < 10) {
+                showAlert('Asset description must be at least 10 characters.', 'error');
+                return;
+            }
+
+            // Show loading
+            document.getElementById('loadingSection').style.display = 'block';
+            document.getElementById('resultsSection').style.display = 'none';
+            document.getElementById('submitBtn').disabled = true;
+
+            try {
+                // Prepare form data
+                const formData = new FormData();
+                formData.append('image', fileInput.files[0]);
+                formData.append('data', JSON.stringify({
+                    user_identifier: userIdentifier,
+                    asset_description: assetDescription
+                }));
+
+                // Submit to API
+                const response = await fetch(`${API_BASE}/user/submit-report`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    currentReportId = result.report_id;
+                    showAlert(`Report submitted successfully! Report ID: ${result.report_id}`, 'success');
+                    
+                    // Start polling for results
+                    pollForResults(result.report_id);
+                } else {
+                    throw new Error(result.message || 'Submission failed');
+                }
+
+            } catch (error) {
+                console.error('Submission error:', error);
+                showAlert(`Error: ${error.message}`, 'error');
+                document.getElementById('loadingSection').style.display = 'none';
+                document.getElementById('submitBtn').disabled = false;
+            }
+        }
+
+        // Poll for results
+        async function pollForResults(reportId) {
+            const maxAttempts = 60; // 5 minutes maximum
+            let attempts = 0;
+
+            const poll = async () => {
+                try {
+                    const response = await fetch(`${API_BASE}/user/report/${reportId}`);
+                    const data = await response.json();
+
+                    if (data.report && data.report.processing_status === 'completed') {
+                        displayResults(data);
+                        document.getElementById('loadingSection').style.display = 'none';
+                        document.getElementById('resultsSection').style.display = 'block';
+                        document.getElementById('submitBtn').disabled = false;
+                        loadRecentReports();
+                        return;
+                    }
+
+                    // Update progress
+                    updateProgress(data.report?.processing_status || 'processing');
+
+                    attempts++;
+                    if (attempts < maxAttempts) {
+                        setTimeout(poll, 5000); // Poll every 5 seconds
+                    } else {
+                        throw new Error('Analysis timeout. Please try again.');
+                    }
+
+                } catch (error) {
+                    console.error('Polling error:', error);
+                    showAlert(`Error getting results: ${error.message}`, 'error');
+                    document.getElementById('loadingSection').style.display = 'none';
+                    document.getElementById('submitBtn').disabled = false;
+                }
+            };
+
+            poll();
+        }
+
+        function updateProgress(status) {
+            const progressText = document.getElementById('progressText');
+            const messages = {
+                'pending': 'Queued for processing...',
+                'processing': 'AI is analyzing the image...',
+                'completed': 'Analysis completed!',
+                'failed': 'Analysis failed. Please try again.'
+            };
+            
+            progressText.textContent = messages[status] || 'Processing...';
+        }
+
+        // Display results
+        function displayResults(data) {
+            const { report, detections, risk_analysis } = data;
+            
+            // Summary
+            displaySummary(report, detections, risk_analysis);
+            
+            // Detections
+            displayDetections(detections);
+            
+            // Risk Analysis
+            displayRiskAnalysis(risk_analysis);
+            
+            // Images
+            displayImages(report);
+        }
+
+        function displaySummary(report, detections, riskAnalysis) {
+            const summaryGrid = document.getElementById('summaryGrid');
+            
+            const totalDetections = detections ? detections.length : 0;
+            const riskLevel = riskAnalysis ? riskAnalysis.risk_category : 'Unknown';
+            const riskScore = riskAnalysis ? (riskAnalysis.overall_risk_score * 10).toFixed(1) : 'N/A';
+            const confidence = riskAnalysis ? (riskAnalysis.calibrated_confidence * 100).toFixed(1) : 'N/A';
+
+            summaryGrid.innerHTML = `
+                <div class="info-item">
+                    <span class="value">${report.report_id}</span>
+                    <div class="label">Report ID</div>
+                </div>
+                <div class="info-item">
+                    <span class="value">${totalDetections}</span>
+                    <div class="label">Detections Found</div>
+                </div>
+                <div class="info-item">
+                    <span class="value risk-badge risk-${riskLevel.toLowerCase()}">${riskLevel}</span>
+                    <div class="label">Risk Level</div>
+                </div>
+                <div class="info-item">
+                    <span class="value">${riskScore}/10</span>
+                    <div class="label">Risk Score</div>
+                </div>
+                <div class="info-item">
+                    <span class="value">${confidence}%</span>
+                    <div class="label">Confidence</div>
+                </div>
+                <div class="info-item">
+                    <span class="value">${new Date(report.submission_date).toLocaleDateString()}</span>
+                    <div class="label">Submission Date</div>
+                </div>
+            `;
+        }
+
+        function displayDetections(detections) {
+            const detectionsList = document.getElementById('detectionsList');
+            
+            if (!detections || detections.length === 0) {
+                detectionsList.innerHTML = '<p>No damage detected in the image.</p>';
+                return;
+            }
+
+            const detectionsHtml = detections.map(detection => {
+                const iconMap = {
+                    'corrosion': 'fas fa-tint',
+                    'crack': 'fas fa-bolt',
+                    'dent': 'fas fa-circle',
+                    'leak': 'fas fa-droplet',
+                    'wear': 'fas fa-tools',
+                    'coating_loss': 'fas fa-paint-brush'
+                };
+
+                const icon = iconMap[detection.class_name] || 'fas fa-exclamation-triangle';
+                const confidence = (detection.confidence_score * 100).toFixed(1);
+
+                return `
+                    <div class="detection-item">
+                        <div class="detection-icon" style="color: #${getColorForClass(detection.class_name)};">
+                            <i class="${icon}"></i>
+                        </div>
+                        <div class="detection-details">
+                            <h4>${detection.class_name.replace('_', ' ').toUpperCase()}</h4>
+                            <p><strong>Confidence:</strong> ${confidence}%</p>
+                            <div class="confidence-bar">
+                                <div class="confidence-fill" style="width: ${confidence}%"></div>
+                            </div>
+                            <p><strong>Area:</strong> ${detection.area_percentage}% of image</p>
+                            <p><strong>Severity Weight:</strong> ${detection.severity_weight}x</p>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            detectionsList.innerHTML = detectionsHtml;
+        }
+
+        function displayRiskAnalysis(riskAnalysis) {
+            const riskAnalysisDiv = document.getElementById('riskAnalysis');
+            const recommendationsDiv = document.getElementById('recommendationsSection');
+            
+            if (!riskAnalysis) {
+                riskAnalysisDiv.innerHTML = '<p>Risk analysis not available.</p>';
+                return;
+            }
+
+            // Risk analysis details
+            const riskHtml = `
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="value risk-badge risk-${riskAnalysis.risk_category.toLowerCase()}">${riskAnalysis.risk_category}</span>
+                        <div class="label">Risk Category</div>
+                    </div>
+                    <div class="info-item">
+                        <span class="value">${(riskAnalysis.overall_risk_score * 10).toFixed(1)}/10</span>
+                        <div class="label">Overall Risk Score</div>
+                    </div>
+                    <div class="info-item">
+                        <span class="value">${(riskAnalysis.probability_score * 100).toFixed(1)}%</span>
+                        <div class="label">Probability</div>
+                    </div>
+                    <div class="info-item">
+                        <span class="value">${(riskAnalysis.consequence_score * 100).toFixed(1)}%</span>
+                        <div class="label">Consequence</div>
+                    </div>
+                    <div class="info-item">
+                        <span class="value">${(riskAnalysis.geometry_based_severity).toFixed(2)}</span>
+                        <div class="label">Geometry Severity</div>
+                    </div>
+                    <div class="info-item">
+                        <span class="value">${(riskAnalysis.uncertainty_score * 100).toFixed(1)}%</span>
+                        <div class="label">Uncertainty</div>
+                    </div>
+                </div>
+            `;
+
+            riskAnalysisDiv.innerHTML = riskHtml;
+
+            // Recommendations (would come from backend in real implementation)
+            const recommendations = [
+                "Schedule detailed inspection based on risk level",
+                "Monitor damage progression regularly",
+                "Consider preventive maintenance measures",
+                "Document findings for trend analysis",
+                "Review operating conditions if applicable"
+            ];
+
+            recommendationsDiv.innerHTML = `
+                <h4><i class="fas fa-lightbulb"></i> Recommendations</h4>
+                <ul>
+                    ${recommendations.map(rec => `<li>${rec}</li>`).join('')}
+                </ul>
+            `;
+        }
+
+        function displayImages(report) {
+            const imageGallery = document.getElementById('imageGallery');
+            
+            const images = [
+                { src: report.original_image_path, title: 'Original Image', icon: 'fas fa-image' },
+                { src: report.yolo_processed_image_path, title: 'AI Detection Results', icon: 'fas fa-robot' },
+                { src: report.final_analysis_image_path, title: 'Final Analysis', icon: 'fas fa-chart-area' }
+            ].filter(img => img.src); // Only show images that exist
+
+            const imagesHtml = images.map(img => `
+                <div style="margin-bottom: 2rem;">
+                    <h4><i class="${img.icon}"></i> ${img.title}</h4>
+                    <img src="${img.src}" alt="${img.title}" class="image-preview" style="max-width: 100%;">
+                </div>
+            `).join('');
+
+            imageGallery.innerHTML = imagesHtml || '<p>Images not available yet.</p>';
+        }
+
+        // Load recent reports
+        async function loadRecentReports() {
+            try {
+                const response = await fetch(`${API_BASE}/user/reports?limit=10`);
+                const data = await response.json();
+                
+                displayRecentReports(data.reports || []);
+            } catch (error) {
+                console.error('Error loading recent reports:', error);
+                document.getElementById('recentReports').innerHTML = '<p>Error loading recent reports.</p>';
+            }
+        }
+
+        function displayRecentReports(reports) {
+            const recentReportsDiv = document.getElementById('recentReports');
+            
+            if (!reports.length) {
+                recentReportsDiv.innerHTML = '<p>No recent reports found.</p>';
+                return;
+            }
+
+            const reportsHtml = reports.map(report => `
+                <div class="report-item" onclick="loadReport('${report.report_id}')">
+                    <div class="report-header">
+                        <span class="report-id">${report.report_id}</span>
+                        <span class="report-status status-${report.processing_status}">${report.processing_status}</span>
+                    </div>
+                    <p>${report.asset_description.substring(0, 100)}${report.asset_description.length > 100 ? '...' : ''}</p>
+                    <small class="report-date">${new Date(report.submission_date).toLocaleString()}</small>
+                </div>
+            `).join('');
+
+            recentReportsDiv.innerHTML = reportsHtml;
+        }
+
+        // Load specific report
+        async function loadReport(reportId) {
+            try {
+                currentReportId = reportId;
+                
+                const response = await fetch(`${API_BASE}/user/report/${reportId}`);
+                const data = await response.json();
+                
+                if (data.report) {
+                    displayResults(data);
+                    document.getElementById('resultsSection').style.display = 'block';
+                    
+                    // Scroll to results
+                    document.getElementById('resultsSection').scrollIntoView({ behavior: 'smooth' });
+                }
+            } catch (error) {
+                console.error('Error loading report:', error);
+                showAlert('Error loading report details.', 'error');
+            }
+        }
+
+        // Utility functions
+        function showAlert(message, type) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-triangle'}"></i>
+                ${message}
+            `;
+            
+            document.querySelector('.container').insertBefore(alertDiv, document.querySelector('.container').firstChild);
+            
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 5000);
+        }
+
+        function getColorForClass(className) {
+            const colors = {
+                'corrosion': 'FF4444',
+                'crack': 'FF0000',
+                'dent': 'FFA500',
+                'leak': '8B0000',
+                'wear': 'FFB347',
+                'coating_loss': 'FFFF00'
+            };
+            return colors[className] || '666666';
+        }
+    </script>
+</body>
+</html>
