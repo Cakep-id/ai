@@ -1,0 +1,326 @@
+/* AgentV2 Global Styles */
+:root {
+    --primary-color: #3498db;
+    --secondary-color: #9b59b6;
+    --admin-color: #e74c3c;
+    --trainer-color: #9b59b6;
+    --user-color: #3498db;
+    --success-color: #27ae60;
+    --warning-color: #f39c12;
+    --danger-color: #e74c3c;
+    --dark-color: #2c3e50;
+    --light-color: #ecf0f1;
+    --border-radius: 15px;
+    --box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    --transition: all 0.3s ease;
+}
+
+/* Guidebook Section Styles */
+.guidebook-section {
+    background: #f8f9fa;
+    margin-top: 2rem;
+    padding: 3rem 2rem;
+}
+
+.guidebook-title {
+    color: #2c3e50;
+    text-align: center;
+    margin-bottom: 2rem;
+    font-size: 2.5rem;
+    font-weight: 700;
+}
+
+.guide-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-bottom: 3rem;
+}
+
+.guide-card {
+    background: white;
+    padding: 2rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    transition: var(--transition);
+    border-left: 4px solid transparent;
+}
+
+.guide-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+}
+
+.guide-card.admin {
+    border-left-color: var(--admin-color);
+}
+
+.guide-card.trainer {
+    border-left-color: var(--trainer-color);
+}
+
+.guide-card.user {
+    border-left-color: var(--user-color);
+}
+
+.guide-card h3 {
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.3rem;
+    font-weight: 600;
+}
+
+.guide-card.admin h3 {
+    color: var(--admin-color);
+}
+
+.guide-card.trainer h3 {
+    color: var(--trainer-color);
+}
+
+.guide-card.user h3 {
+    color: var(--user-color);
+}
+
+.guide-card p {
+    color: #555;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+}
+
+.guide-card ul {
+    color: #666;
+    margin-left: 1rem;
+}
+
+.guide-card ul li {
+    margin-bottom: 0.5rem;
+    line-height: 1.5;
+}
+
+/* Alert Boxes */
+.alert-box {
+    padding: 1rem;
+    border-radius: 8px;
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    font-weight: bold;
+}
+
+.alert-success {
+    background: #d4edda;
+    color: #155724;
+    border-left: 4px solid var(--success-color);
+}
+
+.alert-warning {
+    background: #fff3cd;
+    color: #856404;
+    border-left: 4px solid var(--warning-color);
+}
+
+.alert-info {
+    background: #d1ecf1;
+    color: #0c5460;
+    border-left: 4px solid var(--primary-color);
+}
+
+/* Best Practices Section */
+.best-practices {
+    background: #e8f4f8;
+    padding: 2rem;
+    border-radius: var(--border-radius);
+    border-left: 5px solid var(--primary-color);
+    margin-top: 2rem;
+}
+
+.best-practices h3 {
+    color: #2c3e50;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.practices-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+.practice-item h4 {
+    color: var(--primary-color);
+    margin-bottom: 0.5rem;
+    font-size: 1rem;
+}
+
+.practice-item p {
+    color: #555;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+/* Workflow Section */
+.workflow-section {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    padding: 2rem;
+    border-radius: var(--border-radius);
+    color: white;
+    margin-bottom: 3rem;
+}
+
+.workflow-title {
+    margin-bottom: 1.5rem;
+    text-align: center;
+    font-size: 1.8rem;
+    font-weight: 600;
+}
+
+.workflow-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+}
+
+.workflow-step {
+    text-align: center;
+}
+
+.workflow-number {
+    background: rgba(255,255,255,0.2);
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.workflow-step h4 {
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+}
+
+.workflow-step p {
+    font-size: 0.9rem;
+    opacity: 0.9;
+    line-height: 1.4;
+}
+
+/* Technical Guidelines */
+.technical-section {
+    background: #fff;
+    padding: 2rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    margin-top: 2rem;
+}
+
+.technical-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.technical-item h4 {
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+}
+
+.technical-item.issues h4 {
+    color: var(--danger-color);
+}
+
+.technical-item.targets h4 {
+    color: var(--success-color);
+}
+
+.technical-item ul {
+    color: #666;
+    font-size: 0.9rem;
+    margin-left: 1rem;
+    line-height: 1.5;
+}
+
+.technical-item li {
+    margin-bottom: 0.3rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .guide-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .workflow-grid {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    }
+    
+    .practices-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .technical-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .guidebook-title {
+        font-size: 2rem;
+    }
+    
+    .guidebook-section {
+        padding: 2rem 1rem;
+    }
+}
+
+/* Animation Classes */
+.fade-in {
+    animation: fadeIn 0.6s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.slide-in-left {
+    animation: slideInLeft 0.8s ease-out;
+}
+
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Icon Styling */
+.icon-large {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+}
+
+.icon-medium {
+    font-size: 1.5rem;
+    margin-right: 0.5rem;
+}
+
+.icon-small {
+    font-size: 1rem;
+    margin-right: 0.3rem;
+}

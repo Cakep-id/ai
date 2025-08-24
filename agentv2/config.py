@@ -1,39 +1,40 @@
 # AgentV2 Configuration File
 import os
 from pathlib import Path
+from env_loader import env
 
 # Base Configuration
 BASE_DIR = Path(__file__).parent
 PROJECT_NAME = "AgentV2 - Advanced AI Asset Inspection System"
 VERSION = "2.0.0"
-DEBUG = os.getenv("DEBUG", "false").lower() == "true"
+DEBUG = env.get_bool("DEBUG", False)
 
 # Database Configuration
 DATABASE_CONFIG = {
-    "host": os.getenv("DB_HOST", "localhost"),
-    "port": int(os.getenv("DB_PORT", 3306)),
-    "user": os.getenv("DB_USER", "root"),
-    "password": os.getenv("DB_PASSWORD", ""),
-    "database": os.getenv("DB_NAME", "agentv2_db"),
-    "charset": "utf8mb4",
+    "host": env.get("DB_HOST", "localhost"),
+    "port": env.get_int("DB_PORT", 3306),
+    "user": env.get("DB_USER", "root"),
+    "password": env.get("DB_PASSWORD", ""),
+    "database": env.get("DB_NAME", "cakep_ews_v2"),
+    "charset": env.get("DB_CHARSET", "utf8mb4"),
     "autocommit": True,
-    "pool_size": int(os.getenv("DB_POOL_SIZE", 10)),
-    "max_overflow": int(os.getenv("DB_MAX_OVERFLOW", 20)),
-    "pool_timeout": int(os.getenv("DB_POOL_TIMEOUT", 30)),
-    "pool_recycle": int(os.getenv("DB_POOL_RECYCLE", 3600))
+    "pool_size": env.get_int("DB_POOL_SIZE", 10),
+    "max_overflow": env.get_int("DB_MAX_OVERFLOW", 20),
+    "pool_timeout": env.get_int("DB_POOL_TIMEOUT", 30),
+    "pool_recycle": env.get_int("DB_POOL_RECYCLE", 3600)
 }
 
 # API Configuration
 API_CONFIG = {
-    "host": os.getenv("API_HOST", "0.0.0.0"),
-    "port": int(os.getenv("API_PORT", 8000)),
+    "host": env.get("API_HOST", "0.0.0.0"),
+    "port": env.get_int("API_PORT", 8000),
     "reload": DEBUG,
-    "workers": int(os.getenv("API_WORKERS", 4)),
-    "max_request_size": int(os.getenv("MAX_REQUEST_SIZE", 100 * 1024 * 1024)),  # 100MB
-    "cors_origins": os.getenv("CORS_ORIGINS", "*").split(","),
+    "workers": env.get_int("API_WORKERS", 4),
+    "max_request_size": env.get_int("MAX_REQUEST_SIZE", 100 * 1024 * 1024),  # 100MB
+    "cors_origins": env.get_list("CORS_ORIGINS", default=["*"]),
     "rate_limit": {
-        "requests_per_minute": int(os.getenv("RATE_LIMIT_RPM", 60)),
-        "burst_size": int(os.getenv("RATE_LIMIT_BURST", 10))
+        "requests_per_minute": env.get_int("RATE_LIMIT_RPM", 60),
+        "burst_size": env.get_int("RATE_LIMIT_BURST", 10)
     }
 }
 

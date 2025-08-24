@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgentV2 - AI-Powered Asset Inspection System</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="agentv2-styles.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        .hero-section {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: white;
+            position: relative;
+        }
+
+        .hero-content {
+            max-width: 1200px;
+            padding: 2rem;
+            z-index: 2;
+        }
+
+        .hero-title {
+            font-size: 4rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            animation: fadeInUp 1s ease-out;
+        }
+
+        .hero-subtitle {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+            animation: fadeInUp 1s ease-out 0.2s both;
+        }
+
+        .hero-description {
+            font-size: 1.2rem;
+            margin-bottom: 3rem;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.6;
+            animation: fadeInUp 1s ease-out 0.4s both;
+        }
+
+        .role-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            max-width: 1000px;
+            margin: 0 auto;
+            animation: fadeInUp 1s ease-out 0.6s both;
+        }
+
+        .role-card {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 2.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            text-decoration: none;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .role-card:hover {
+            transform: translateY(-10px);
+            background: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+        }
+
+        .role-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .role-card.user::before {
+            background: linear-gradient(90deg, #3498db, #2980b9);
+        }
+
+        .role-card.admin::before {
+            background: linear-gradient(90deg, #e74c3c, #c0392b);
+        }
+
+        .role-card.trainer::before {
+            background: linear-gradient(90deg, #9b59b6, #8e44ad);
+        }
+
+        .role-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            display: block;
+        }
+
+        .role-card.user .role-icon {
+            color: #3498db;
+        }
+
+        .role-card.admin .role-icon {
+            color: #e74c3c;
+        }
+
+        .role-card.trainer .role-icon {
+            color: #9b59b6;
+        }
+
+        .role-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .role-description {
+            font-size: 1rem;
+            opacity: 0.9;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+        }
+
+        .role-features {
+            list-style: none;
+            text-align: left;
+        }
+
+        .role-features li {
+            padding: 0.3rem 0;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .role-features li::before {
+            content: '✓';
+            color: #27ae60;
+            font-weight: bold;
+            margin-right: 0.5rem;
+        }
+
+        .features-section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            padding: 4rem 2rem;
+            margin-top: 2rem;
+        }
+
+        .features-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .features-title {
+            color: white;
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+            font-weight: 600;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .feature-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2rem;
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .feature-item:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-5px);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            color: #3498db;
+            margin-bottom: 1rem;
+        }
+
+        .feature-title {
+            color: white;
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .feature-desc {
+            color: rgba(255, 255, 255, 0.9);
+            line-height: 1.6;
+        }
+
+        .tech-stack {
+            background: white;
+            padding: 4rem 2rem;
+            text-align: center;
+        }
+
+        .tech-title {
+            color: #2c3e50;
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            font-weight: 600;
+        }
+
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .tech-item {
+            padding: 1.5rem;
+            border-radius: 15px;
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            transition: all 0.3s ease;
+        }
+
+        .tech-item:hover {
+            border-color: #3498db;
+            background: #e3f2fd;
+        }
+
+        .tech-icon {
+            font-size: 2rem;
+            color: #3498db;
+            margin-bottom: 1rem;
+        }
+
+        .tech-name {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 0.5rem;
+        }
+
+        .tech-desc {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .footer {
+            background: #2c3e50;
+            color: white;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2.5rem;
+            }
+            
+            .hero-subtitle {
+                font-size: 1.2rem;
+            }
+            
+            .role-selector {
+                grid-template-columns: 1fr;
+            }
+            
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="hero-content">
+            <h1 class="hero-title">AgentV2</h1>
+            <p class="hero-subtitle">Next-Generation AI Asset Inspection System</p>
+            <p class="hero-description">
+                Revolutionize your asset management with cutting-edge AI technology. 
+                Our intelligent system combines YOLO object detection, advanced risk analysis, 
+                and human-in-the-loop learning to deliver unprecedented accuracy in asset inspection.
+            </p>
+            
+            <div class="role-selector">
+                <a href="user.html" class="role-card user">
+                    <i class="fas fa-user role-icon"></i>
+                    <h3 class="role-title">User Portal</h3>
+                    <p class="role-description">Submit inspection requests and track asset condition reports</p>
+                    <ul class="role-features">
+                        <li>Upload asset images for AI analysis</li>
+                        <li>Real-time inspection processing</li>
+                        <li>Detailed damage detection reports</li>
+                        <li>Risk assessment & recommendations</li>
+                        <li>Historical tracking & trends</li>
+                    </ul>
+                </a>
+                
+                <a href="admin.html" class="role-card admin">
+                    <i class="fas fa-shield-alt role-icon"></i>
+                    <h3 class="role-title">Admin Dashboard</h3>
+                    <p class="role-description">Validate results, manage quality control, and oversee operations</p>
+                    <ul class="role-features">
+                        <li>Validation & quality control</li>
+                        <li>Analytics & reporting dashboard</li>
+                        <li>Maintenance scheduling</li>
+                        <li>Risk management oversight</li>
+                        <li>System performance monitoring</li>
+                    </ul>
+                </a>
+                
+                <a href="trainer.html" class="role-card trainer">
+                    <i class="fas fa-brain role-icon"></i>
+                    <h3 class="role-title">Trainer Console</h3>
+                    <p class="role-description">Train AI models, manage datasets, and optimize performance</p>
+                    <ul class="role-features">
+                        <li>Training data management</li>
+                        <li>Model training & optimization</li>
+                        <li>Performance metrics tracking</li>
+                        <li>Continuous learning pipeline</li>
+                        <li>Model versioning & deployment</li>
+                    </ul>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features-section">
+        <div class="features-container">
+            <h2 class="features-title">Powerful AI-Driven Features</h2>
+            <div class="features-grid">
+                <div class="feature-item">
+                    <i class="fas fa-eye feature-icon"></i>
+                    <h3 class="feature-title">Computer Vision</h3>
+                    <p class="feature-desc">Advanced YOLO-based object detection for precise damage identification across multiple asset types</p>
+                </div>
+                
+                <div class="feature-item">
+                    <i class="fas fa-chart-line feature-icon"></i>
+                    <h3 class="feature-title">Risk Analytics</h3>
+                    <p class="feature-desc">Intelligent risk assessment engine that prioritizes maintenance based on severity and impact</p>
+                </div>
+                
+                <div class="feature-item">
+                    <i class="fas fa-sync-alt feature-icon"></i>
+                    <h3 class="feature-title">Continuous Learning</h3>
+                    <p class="feature-desc">Human-in-the-loop feedback system that continuously improves model accuracy</p>
+                </div>
+                
+                <div class="feature-item">
+                    <i class="fas fa-clock feature-icon"></i>
+                    <h3 class="feature-title">Real-time Processing</h3>
+                    <p class="feature-desc">Lightning-fast image processing with results delivered in under 30 seconds</p>
+                </div>
+                
+                <div class="feature-item">
+                    <i class="fas fa-shield-check feature-icon"></i>
+                    <h3 class="feature-title">Quality Assurance</h3>
+                    <p class="feature-desc">Multi-layer validation system ensuring 95%+ accuracy in damage detection</p>
+                </div>
+                
+                <div class="feature-item">
+                    <i class="fas fa-mobile-alt feature-icon"></i>
+                    <h3 class="feature-title">Mobile Optimized</h3>
+                    <p class="feature-desc">Responsive design supporting field inspections on any device</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Technology Stack -->
+    <section class="tech-stack">
+        <div class="features-container">
+            <h2 class="tech-title">Built with Cutting-Edge Technology</h2>
+            <div class="tech-grid">
+                <div class="tech-item">
+                    <i class="fab fa-python tech-icon"></i>
+                    <div class="tech-name">Python & FastAPI</div>
+                    <div class="tech-desc">High-performance backend with async processing</div>
+                </div>
+                
+                <div class="tech-item">
+                    <i class="fas fa-robot tech-icon"></i>
+                    <div class="tech-name">YOLOv8</div>
+                    <div class="tech-desc">State-of-the-art object detection model</div>
+                </div>
+                
+                <div class="tech-item">
+                    <i class="fas fa-database tech-icon"></i>
+                    <div class="tech-name">MySQL</div>
+                    <div class="tech-desc">Robust data management and analytics</div>
+                </div>
+                
+                <div class="tech-item">
+                    <i class="fab fa-html5 tech-icon"></i>
+                    <div class="tech-name">Modern Web UI</div>
+                    <div class="tech-desc">Responsive design with real-time updates</div>
+                </div>
+                
+                <div class="tech-item">
+                    <i class="fas fa-cloud tech-icon"></i>
+                    <div class="tech-name">Cloud Ready</div>
+                    <div class="tech-desc">Scalable deployment architecture</div>
+                </div>
+                
+                <div class="tech-item">
+                    <i class="fas fa-chart-bar tech-icon"></i>
+                    <div class="tech-name">Advanced Analytics</div>
+                    <div class="tech-desc">Comprehensive reporting and insights</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- User Guide Section (Indonesian) -->
+    <div class="guidebook-section">
+        <div class="features-container">
+            <h2 style="color: #2c3e50; text-align: center; margin-bottom: 2rem; font-size: 2.5rem;">
+                📖 Panduan Penggunaan Sistem
+            </h2>
+            
+            <div class="guide-grid">
+                <div class="guide-card user">
+                    <h3>
+                        <i class="fas fa-user"></i> Untuk User (Pengguna)
+                    </h3>
+                    <p>
+                        <strong>Fungsi:</strong> Portal untuk melakukan inspeksi aset menggunakan AI dan mendapatkan laporan kondisi real-time.
+                    </p>
+                    <ul>
+                        <li>Upload foto aset yang akan diinspeksi</li>
+                        <li>Dapatkan hasil analisis AI dalam hitungan detik</li>
+                        <li>Lihat laporan kerusakan dengan tingkat akurasi tinggi</li>
+                        <li>Monitor riwayat inspeksi dan tren kondisi aset</li>
+                        <li>Akses rekomendasi maintenance berdasarkan AI</li>
+                    </ul>
+                    <div class="alert-box alert-info">
+                        💡 Tips: Pastikan foto memiliki pencahayaan yang baik dan fokus pada area yang ingin diinspeksi
+                    </div>
+                </div>
+
+                <div class="guide-card admin">
+                    <h3>
+                        <i class="fas fa-shield-alt"></i> Untuk Admin (Administrator)
+                    </h3>
+                    <p>
+                        <strong>Fungsi:</strong> Dashboard manajemen untuk validasi hasil AI, quality control, dan pengawasan operasional sistem.
+                    </p>
+                    <ul>
+                        <li>Validasi dan verifikasi hasil deteksi AI</li>
+                        <li>Monitor dashboard analytics dan metrics</li>
+                        <li>Kelola jadwal maintenance berdasarkan prioritas risiko</li>
+                        <li>Oversight quality assurance dan akurasi sistem</li>
+                        <li>Generate laporan untuk stakeholder dan management</li>
+                    </ul>
+                    <div class="alert-box alert-warning">
+                        ⚠️ Penting: Review dan validasi minimal 10-15 laporan per hari untuk menjaga kualitas training data
+                    </div>
+                </div>
+
+                <div class="guide-card trainer">
+                    <h3>
+                        <i class="fas fa-brain"></i> Untuk Trainer (AI Specialist)
+                    </h3>
+                    <p>
+                        <strong>Fungsi:</strong> Console untuk mengelola training data, melatih model AI, dan optimisasi performa deteksi.
+                    </p>
+                    <ul>
+                        <li>Kelola dataset training dan anotasi manual</li>
+                        <li>Train dan fine-tune model YOLO untuk akurasi optimal</li>
+                        <li>Monitor metrics seperti mAP, precision, dan recall</li>
+                        <li>Implementasi continuous learning dari feedback</li>
+                        <li>Versioning dan deployment model ke production</li>
+                    </ul>
+                    <div class="alert-box alert-success">
+                        ✅ Target: Capai mAP@0.5 minimal 85% sebelum deploy ke production
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Start Guide -->
+            <div class="workflow-section">
+                <h3 class="workflow-title">🚀 Quick Start Guide</h3>
+                <div class="workflow-grid">
+                    <div class="workflow-step">
+                        <div class="workflow-number">1</div>
+                        <h4>Pilih Role</h4>
+                        <p>Klik role yang sesuai dengan tugas Anda: User, Admin, atau Trainer</p>
+                    </div>
+                    <div class="workflow-step">
+                        <div class="workflow-number">2</div>
+                        <h4>Setup Sistem</h4>
+                        <p>Ikuti panduan setup yang disediakan di masing-masing interface</p>
+                    </div>
+                    <div class="workflow-step">
+                        <div class="workflow-number">3</div>
+                        <h4>Mulai Inspeksi</h4>
+                        <p>Upload gambar atau mulai training sesuai dengan role Anda</p>
+                    </div>
+                    <div class="workflow-step">
+                        <div class="workflow-number">4</div>
+                        <h4>Monitor Progress</h4>
+                        <p>Pantau hasil dan metrics untuk memastikan performa optimal</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>&copy; 2025 AgentV2 - AI Asset Inspection System. Built with ❤️ for intelligent asset management.</p>
+    </footer>
+
+    <script src="agentv2-utils.js"></script>
+    <script>
+        // Add role card click animations
+        document.querySelectorAll('.role-card').forEach(card => {
+            card.addEventListener('click', function(e) {
+                // Add click animation
+                this.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    this.style.transform = '';
+                }, 150);
+            });
+        });
+
+        // Add smooth scrolling for navigation
+        document.addEventListener('DOMContentLoaded', function() {
+            // Parallax effect for hero section
+            window.addEventListener('scroll', function() {
+                const scrolled = window.pageYOffset;
+                const hero = document.querySelector('.hero-section');
+                hero.style.transform = `translateY(${scrolled * 0.5}px)`;
+            });
+        });
+    </script>
+</body>
+</html>

@@ -26,10 +26,31 @@ import asyncio
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
 import matplotlib.pyplot as plt
-import seaborn as sns
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import classification_report
-import wandb  # For experiment tracking
+
+# Optional imports with fallbacks
+try:
+    import seaborn as sns
+    SEABORN_AVAILABLE = True
+except ImportError:
+    SEABORN_AVAILABLE = False
+    sns = None
+
+try:
+    from sklearn.model_selection import train_test_split
+    from sklearn.metrics import classification_report
+    SKLEARN_AVAILABLE = True
+except ImportError:
+    SKLEARN_AVAILABLE = False
+    def train_test_split(*args, **kwargs): return args[0][:80], args[0][80:]
+    def classification_report(*args, **kwargs): return "Mock classification report"
+
+try:
+    import wandb  # For experiment tracking
+    WANDB_AVAILABLE = True
+except ImportError:
+    WANDB_AVAILABLE = False
+    wandb = None
+
 import yaml
 from pathlib import Path
 import shutil
